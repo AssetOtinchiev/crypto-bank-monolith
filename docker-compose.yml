@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:14.1-alpine
+    container_name: postgres
+    restart: always
+    environment:
+      - TZ=Asia/Almaty
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=k9GU3h1MS4^V
+      - POSTGRES_DB=crypto_bank
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    ports:
+      - '5433:5432'
+    volumes:
+      - db:/var/lib/postgresql/data
+volumes:
+  db:
+    driver: local
