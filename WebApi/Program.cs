@@ -1,5 +1,10 @@
+using Application;
+using Application.Interfaces;
+using Contracts.Dtos;
+using Domain.Entitites;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Context;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,6 +17,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddPersistenceInfrastructure(builder.Configuration);
+builder.Services.AddApplicationLayer();
+
 
 var app = builder.Build();
 
@@ -30,8 +37,23 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+RegisterUserAPIs();
 app.Run();
 
+void RegisterUserAPIs()
+{
+    app.MapPost("/register", async (CancellationToken token, CreateUserDto userDto, IUserService userService) =>
+    {
+        var createdUserResult = await userService.Register(userDto, token);
+
+        if (createdUserResult.IsT1)
+        {
+            return Results.BadRequest(createdUserResult.AsT1.GetErrorsString());
+        }
+        return Results.Ok(createdUserResult.AsT0);
+    });
+
+}
 
 void RunMigration(WebApplication webApplication)
 {

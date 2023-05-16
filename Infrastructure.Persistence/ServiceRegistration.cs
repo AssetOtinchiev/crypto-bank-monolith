@@ -1,4 +1,5 @@
 using Application.Interfaces;
+using Application.Interfaces.Infrastructure;
 using Domain.Settings;
 using Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
