@@ -11,7 +11,7 @@ namespace WebApi.Unit.Tests;
 public class UserServiceTest
 {
     [Fact]
-    public async Task Register_WhenValidPassword_ShouldReturnUser()
+    public async Task Register_WhenUserNotExistInDb_ShouldReturnUser()
     {
         // Arrange
         var contextMock = new Mock<AppDbContext>();
@@ -32,7 +32,7 @@ public class UserServiceTest
     }
 
     [Fact]
-    public async Task Register_WhenInValidPassword_ShouldReturnErrorResponse()
+    public async Task Register_WhenUserExist_ShouldReturnErrorResponse()
     {
         // Arrange
         var contextMock = new Mock<AppDbContext>();

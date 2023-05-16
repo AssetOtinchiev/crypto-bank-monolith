@@ -1,10 +1,9 @@
 using Application;
 using Application.Interfaces;
 using Contracts.Dtos;
-using Domain.Entitites;
+using FluentValidation;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Context;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -42,8 +41,13 @@ app.Run();
 
 void RegisterUserAPIs()
 {
-    app.MapPost("/register", async (CancellationToken token, CreateUserDto userDto, IUserService userService) =>
+    app.MapPost("/register", async (CancellationToken token, IValidator<CreateUserDto> validator, CreateUserDto userDto, IUserService userService) =>
     {
+        var validationResult = await validator.ValidateAsync(userDto);
+        if (!validationResult.IsValid) {
+            return Results.ValidationProblem(validationResult.ToDictionary());
+        }
+        
         var createdUserResult = await userService.Register(userDto, token);
 
         if (createdUserResult.IsT1)

@@ -31,14 +31,6 @@ public class UserService : IUserService
             };
         }
 
-        if (userDto.Password.Length <= 7 || !userDto.Password.Any(char.IsUpper) || !userDto.Password.Any(char.IsLower))
-        {
-            return new ErrorResponse
-            {
-                Errors = {"Password is weak"}
-            };
-        }
-
         var salt = PasswordHelper.GetSecureSalt();
         var passwordHash = PasswordHelper.HashUsingPbkdf2(userDto.Password, salt);
 
