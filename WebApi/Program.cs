@@ -66,6 +66,9 @@ void RunMigration(WebApplication webApplication)
         var dbContext = scope.ServiceProvider
             .GetRequiredService<AppDbContext>();
 
-        dbContext.Database.Migrate();
+        if (dbContext.Database.ProviderName != "Microsoft.EntityFrameworkCore.InMemory")
+            dbContext.Database.Migrate();
     }
 }
+
+public partial class Program { }
