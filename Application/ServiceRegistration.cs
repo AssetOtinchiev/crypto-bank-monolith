@@ -13,5 +13,6 @@ public static class ServiceRegistration
     {
         services.AddScoped<IValidator<CreateUserDto>, CreateUserDtoValidator>();
         services.AddScoped<IUserService, UserService>();
+        services.AddTransient<ITokenService, TokenService>();
     }
 }

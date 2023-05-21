@@ -17,7 +17,9 @@ public class UserServiceTest
         var contextMock = new Mock<AppDbContext>();
         contextMock.Setup<DbSet<User>>(x => x.Users)
             .ReturnsDbSet(new List<User>());
-        UserService account = new UserService(contextMock.Object);
+
+        var tokenMock = new Mock<TokenService>();
+        UserService account = new UserService(contextMock.Object, tokenMock.Object);
         var data = new CreateUserDto()
         {
             Email = "12312312@gmial.com",
@@ -47,7 +49,8 @@ public class UserServiceTest
                     PasswordSalt = "1231"
                 }
             });
-        UserService account = new UserService(contextMock.Object);
+        var tokenMock = new Mock<TokenService>();
+        UserService account = new UserService(contextMock.Object, tokenMock.Object);
         var data = new CreateUserDto()
         {
             Email = "12312312@gmial.com",

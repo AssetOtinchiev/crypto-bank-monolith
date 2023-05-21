@@ -4,7 +4,11 @@ using Contracts.Dtos;
 using FluentValidation;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Context;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Swashbuckle.AspNetCore.SwaggerGen;
+using WebApi.Swagger;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,9 +18,12 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
 
 builder.Services.AddPersistenceInfrastructure(builder.Configuration);
 builder.Services.AddApplicationLayer();
+
+builder.Services.AddAuthenticationAndAuthorization(builder.Configuration);
 
 
 var app = builder.Build();
@@ -32,6 +39,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
@@ -55,6 +63,27 @@ void RegisterUserAPIs()
             return Results.BadRequest(createdUserResult.AsT1.GetErrorsString());
         }
         return Results.Ok(createdUserResult.AsT0);
+    });
+    
+    app.MapPost("/login", async (CancellationToken token, IValidator<CreateUserDto> validator, CreateUserDto userDto, IUserService userService) =>
+    {
+        var validationResult = await validator.ValidateAsync(userDto);
+        if (!validationResult.IsValid) {
+            return Results.ValidationProblem(validationResult.ToDictionary());
+        }
+        
+        var createdUserResult = await userService.LoginAsync(userDto, token);
+
+        if (createdUserResult.IsT1)
+        {
+            return Results.BadRequest(createdUserResult.AsT1.GetErrorsString());
+        }
+        return Results.Ok(createdUserResult.AsT0);
+    });
+    
+    app.MapGet("/check", [Authorize]async (CancellationToken token) =>
+    {
+        return Results.Ok("createdUserResult.AsT0");
     });
 
 }
