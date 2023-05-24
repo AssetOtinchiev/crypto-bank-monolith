@@ -16,7 +16,7 @@ public class UserController : Controller
     }
 
     [HttpPost]
-    public async Task<UserModel> GetDeposits(RegisterUserModel registerUserModel, CancellationToken cancellationToken)
+    public async Task<UserModel> RegisterUser(RegisterUserModel registerUserModel, CancellationToken cancellationToken)
     {
         var response = await _dispatcher.Dispatch(new RegisterUser.Request(registerUserModel), cancellationToken);
         return response.UserModel;

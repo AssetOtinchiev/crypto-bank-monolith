@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using WebApi.Database;
 using WebApi.Features.Users.Domain;
 using WebApi.Features.Users.Models;
-using WebApi.Features.Users.Services;
+using WebApi.Shared;
 
 namespace WebApi.Features.Users.Requests;
 
