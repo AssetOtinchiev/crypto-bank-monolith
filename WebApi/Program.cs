@@ -1,18 +1,32 @@
-using Application;
-using Application.Interfaces;
-using Contracts.Dtos;
+using System.Reflection;
 using FluentValidation;
-using Infrastructure.Persistence;
-using Infrastructure.Persistence.Context;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Prometheus;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using WebApi.Database;
+using WebApi.Features.Users.Registration;
+using WebApi.Observability;
+using WebApi.Pipeline;
+using WebApi.Pipeline.Behaviors;
 using WebApi.Swagger;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddMediatR(cfg => cfg
+    .RegisterServicesFromAssembly(Assembly.GetExecutingAssembly())
+    // Can be merged if necessary
+    .AddOpenBehavior(typeof(LoggingBehavior<,>))
+    .AddOpenBehavior(typeof(MetricsBehavior<,>))
+    .AddOpenBehavior(typeof(TracingBehavior<,>))
+    .AddOpenBehavior(typeof(ValidationBehavior<,>)));
+builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+
+builder.Services.AddSingleton<Dispatcher>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -20,13 +34,18 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
 
-builder.Services.AddPersistenceInfrastructure(builder.Configuration);
-builder.Services.AddApplicationLayer();
+//todo remove
+// builder.Services.AddPersistenceInfrastructure(builder.Configuration);
+// builder.Services.AddApplicationLayer();
+//
+// builder.Services.AddAuthenticationAndAuthorization(builder.Configuration);
 
-builder.Services.AddAuthenticationAndAuthorization(builder.Configuration);
-
+// todo Features
+builder.AddUsers();
 
 var app = builder.Build();
+
+Telemetry.Init("WebApi");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -37,6 +56,7 @@ if (app.Environment.IsDevelopment())
     RunMigration(app);
 }
 
+app.MapMetrics();
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
@@ -44,49 +64,49 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-RegisterUserAPIs();
+//RegisterUserAPIs();
 app.Run();
 
-void RegisterUserAPIs()
-{
-    app.MapPost("/register", async (CancellationToken token, IValidator<CreateUserDto> validator, CreateUserDto userDto, IUserService userService) =>
-    {
-        var validationResult = await validator.ValidateAsync(userDto);
-        if (!validationResult.IsValid) {
-            return Results.ValidationProblem(validationResult.ToDictionary());
-        }
-        
-        var createdUserResult = await userService.Register(userDto, token);
-
-        if (createdUserResult.IsT1)
-        {
-            return Results.BadRequest(createdUserResult.AsT1.GetErrorsString());
-        }
-        return Results.Ok(createdUserResult.AsT0);
-    });
-    
-    app.MapPost("/login", async (CancellationToken token, IValidator<CreateUserDto> validator, CreateUserDto userDto, IUserService userService) =>
-    {
-        var validationResult = await validator.ValidateAsync(userDto);
-        if (!validationResult.IsValid) {
-            return Results.ValidationProblem(validationResult.ToDictionary());
-        }
-        
-        var createdUserResult = await userService.LoginAsync(userDto, token);
-
-        if (createdUserResult.IsT1)
-        {
-            return Results.BadRequest(createdUserResult.AsT1.GetErrorsString());
-        }
-        return Results.Ok(createdUserResult.AsT0);
-    });
-    
-    app.MapGet("/check", [Authorize]async (CancellationToken token) =>
-    {
-        return Results.Ok("createdUserResult.AsT0");
-    });
-
-}
+// void RegisterUserAPIs()
+// {
+//     app.MapPost("/register", async (CancellationToken token, IValidator<CreateUserDto> validator, CreateUserDto userDto, IUserService userService) =>
+//     {
+//         var validationResult = await validator.ValidateAsync(userDto);
+//         if (!validationResult.IsValid) {
+//             return Results.ValidationProblem(validationResult.ToDictionary());
+//         }
+//         
+//         var createdUserResult = await userService.Register(userDto, token);
+//
+//         if (createdUserResult.IsT1)
+//         {
+//             return Results.BadRequest(createdUserResult.AsT1.GetErrorsString());
+//         }
+//         return Results.Ok(createdUserResult.AsT0);
+//     });
+//     
+//     app.MapPost("/login", async (CancellationToken token, IValidator<CreateUserDto> validator, CreateUserDto userDto, IUserService userService) =>
+//     {
+//         var validationResult = await validator.ValidateAsync(userDto);
+//         if (!validationResult.IsValid) {
+//             return Results.ValidationProblem(validationResult.ToDictionary());
+//         }
+//         
+//         var createdUserResult = await userService.LoginAsync(userDto, token);
+//
+//         if (createdUserResult.IsT1)
+//         {
+//             return Results.BadRequest(createdUserResult.AsT1.GetErrorsString());
+//         }
+//         return Results.Ok(createdUserResult.AsT0);
+//     });
+//     
+//     app.MapGet("/check", [Authorize]async (CancellationToken token) =>
+//     {
+//         return Results.Ok("createdUserResult.AsT0");
+//     });
+//
+// }
 
 void RunMigration(WebApplication webApplication)
 {
