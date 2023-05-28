@@ -27,6 +27,9 @@ public static class RegisterUser
 
             RuleFor(x => x.RegisterUserModel.Password)
                 .MinimumLength(7);
+            
+            RuleFor(x => x.RegisterUserModel.DateOfBirth)
+                .NotEmpty();
 
             RuleFor(x => x.RegisterUserModel.Email).MustAsync(async (x, token) =>
             {
@@ -76,6 +79,7 @@ public static class RegisterUser
             Password = passwordHash,
             PasswordSalt = passwordSalt,
             Email = registerUserModel.Email,
+            DateOfBirth = registerUserModel.DateOfBirth,
             Roles = new List<Role>()
             {
                 new()

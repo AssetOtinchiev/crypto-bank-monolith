@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using Prometheus;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using WebApi.Database;
+using WebApi.Features.Accounts.Registration;
 using WebApi.Features.Auth.Registration;
 using WebApi.Features.Users.Registration;
 using WebApi.Observability;
@@ -39,6 +40,7 @@ builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwa
 // todo Features
 builder.AddUsers();
 builder.AddAuth();
+builder.AddAccounts();
 
 var app = builder.Build();
 

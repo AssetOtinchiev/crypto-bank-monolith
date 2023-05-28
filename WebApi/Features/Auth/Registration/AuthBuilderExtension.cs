@@ -10,8 +10,6 @@ public static class AuthBuilderExtension
     public static WebApplicationBuilder AddAuth(this WebApplicationBuilder builder)
     {
         builder.Configuration.GetSection(JWTSetting.JWTSectionName).Bind(JWTSetting.JwtOptions);
-        builder.Services.AddTransient<TokenService>();
-
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
         {
             options.TokenValidationParameters = new TokenValidationParameters
@@ -30,6 +28,8 @@ public static class AuthBuilderExtension
         builder.Services.AddAuthorization(options =>
         {
         });
+        
+        builder.Services.AddTransient<TokenService>();
         return builder;
     }
 }
