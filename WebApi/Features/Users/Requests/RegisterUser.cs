@@ -1,9 +1,11 @@
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using WebApi.Database;
 using WebApi.Features.Users.Domain;
 using WebApi.Features.Users.Models;
+using WebApi.Features.Users.Options;
 using WebApi.Shared;
 
 namespace WebApi.Features.Users.Requests;
@@ -38,18 +40,27 @@ public static class RegisterUser
     public class RequestHandler : IRequestHandler<Request, Response>
     {
         private readonly AppDbContext _dbContext;
+        private readonly UsersOptions _usersOptions; 
 
-        public RequestHandler(AppDbContext dbContext)
+        public RequestHandler(AppDbContext dbContext, IOptions<UsersOptions> usersOptions)
         {
             _dbContext = dbContext;
+            _usersOptions = usersOptions.Value;
         }
 
         public async Task<Response> Handle(Request request, CancellationToken cancellationToken)
         {
             var salt = PasswordHelper.GetSecureSalt();
-            var passwordHash = PasswordHelper.HashUsingPbkdf2(request.RegisterUserModel.Password, salt);
+            var passwordHash = PasswordHelper.HashUsingArgon2(request.RegisterUserModel.Password, salt);
 
-            var user = ToUser(request.RegisterUserModel, passwordHash, Convert.ToBase64String(salt));
+            var role = RoleType.User;
+            var isExistAdmin = await _dbContext.Roles.AnyAsync(x => x.Name == RoleType.Administrator, cancellationToken: cancellationToken);
+            if (!isExistAdmin && request.RegisterUserModel.Email == _usersOptions.AdministratorEmail)
+            {
+                role = RoleType.Administrator;
+            }
+            
+            var user = ToUser(request.RegisterUserModel, passwordHash, Convert.ToBase64String(salt), role);
             await _dbContext.Users.AddAsync(user, cancellationToken);
             await _dbContext.SaveChangesAsync(cancellationToken);
 
@@ -57,23 +68,32 @@ public static class RegisterUser
         }
     }
 
-    public static User ToUser(RegisterUserModel registerUserModel, string passwordHash, string passwordSalt)
+    private static User ToUser(RegisterUserModel registerUserModel, string passwordHash, string passwordSalt, RoleType role)
     {
         return new User()
         {
             Id = Guid.NewGuid(),
             Password = passwordHash,
             PasswordSalt = passwordSalt,
-            Email = registerUserModel.Email
+            Email = registerUserModel.Email,
+            Roles = new List<Role>()
+            {
+                new()
+                {
+                    Name = role
+                }
+            }
         };
     }
 
-    public static UserModel ToUserDto(User user)
+    private static UserModel ToUserDto(User user)
     {
         return new UserModel()
         {
             Id = user.Id,
             Email = user.Email,
+            DateOfBirth = user.DateOfBirth,
+            DateOfRegistration = user.DateOfRegistration
         };
     }
 }

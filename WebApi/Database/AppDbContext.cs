@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using WebApi.Features.Accounts.Domain;
 using WebApi.Features.Auth.Domain;
 using WebApi.Features.Users.Domain;
 
@@ -20,25 +21,112 @@ public class AppDbContext : DbContext
     
     public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
     
+    public virtual DbSet<Account> Accounts { get; set; } 
     
+    public virtual DbSet<Role> Roles { get; set; }
+
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<RefreshToken>(entity =>
+        base.OnModelCreating(modelBuilder);
+
+        MapRefreshToken(modelBuilder);
+        MapAccounts(modelBuilder);
+        MapUsers(modelBuilder);
+        MapRoles(modelBuilder);
+    }
+
+    private void MapRoles(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Role>(role =>
         {
+            role.HasKey(x => x.Id);
+            
+            role.Property(e => e.UserId)
+                .IsRequired();
+            
+            role.Property(e => e.Name)
+                .IsRequired();
+            
+            role.Property(e => e.CreatedAt)
+                .IsRequired();
+        });
+    }
 
-            entity.Property(e => e.TokenHash)
+    private void MapUsers(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<User>(user =>
+        {
+            user.HasKey(x => x.Id);
+
+            user.Property(e => e.Email)
+                .IsRequired();
+            
+            user.Property(e => e.Password)
+                .IsRequired();
+            
+            user.Property(e => e.PasswordSalt)
+                .IsRequired();
+            
+            user.Property(e => e.DateOfBirth)
+                .IsRequired();
+            
+            user.Property(e => e.DateOfRegistration)
+                .IsRequired();
+        });
+    }
+
+    private static void MapRefreshToken(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<RefreshToken>(refreshToken =>
+        {
+            refreshToken.HasKey(x => x.Id);
+            
+            refreshToken.Property(e => e.TokenHash)
                 .IsRequired()
                 .HasMaxLength(1000);
 
-            entity.Property(e => e.TokenSalt)
+            refreshToken.Property(e => e.TokenSalt)
                 .IsRequired()
                 .HasMaxLength(1000);
+            
+            refreshToken.Property(e => e.UserId)
+                .IsRequired();
 
-            entity.HasOne(d => d.User)
+            refreshToken.HasOne(d => d.User)
                 .WithMany(p => p.RefreshTokens)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_RefreshTokens_User");
+        });
+    }
+    
+    private static void MapAccounts(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Account>(account =>
+        {
+            account.HasKey(x => x.Id);
+            
+            account.Property(e => e.Amount)
+                .IsRequired();
+            
+            account.Property(e => e.Currency)
+                .IsRequired();
+            
+            account.Property(e => e.Currency)
+                .IsRequired();
+            
+            account.Property(e => e.DateOfOpening)
+                .IsRequired();
+            
+            account.Property(e => e.UserId)
+                .IsRequired();
+            
+            account.HasOne(d => d.User)
+                .WithMany(p => p.Accounts)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Accounts_User");
         });
     }
 }

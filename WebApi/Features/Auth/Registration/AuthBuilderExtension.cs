@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using WebApi.Features.Auth.Options;
 using WebApi.Features.Auth.Services;
 
@@ -10,6 +12,24 @@ public static class AuthBuilderExtension
         builder.Configuration.GetSection(JWTSetting.JWTSectionName).Bind(JWTSetting.JwtOptions);
         builder.Services.AddTransient<TokenService>();
 
+        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = JWTSetting.JwtOptions.Issuer,
+                ValidAudience = JWTSetting.JwtOptions.Audience,
+                IssuerSigningKey = new SymmetricSecurityKey(Convert.FromBase64String(JWTSetting.JwtOptions.Key)),
+                ClockSkew = TimeSpan.Zero
+            };
+        });
+        
+        
+        builder.Services.AddAuthorization(options =>
+        {
+        });
         return builder;
     }
 }

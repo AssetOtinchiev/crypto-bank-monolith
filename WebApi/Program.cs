@@ -35,11 +35,6 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
 
-//todo remove
-// builder.Services.AddPersistenceInfrastructure(builder.Configuration);
-// builder.Services.AddApplicationLayer();
-//
-// builder.Services.AddAuthenticationAndAuthorization(builder.Configuration);
 
 // todo Features
 builder.AddUsers();
@@ -66,7 +61,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-//RegisterUserAPIs();
 app.Run();
 
 // void RegisterUserAPIs()

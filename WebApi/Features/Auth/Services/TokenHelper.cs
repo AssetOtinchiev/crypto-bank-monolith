@@ -3,26 +3,41 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using Microsoft.IdentityModel.Tokens;
 using WebApi.Features.Auth.Options;
+using WebApi.Features.Users.Domain;
 
 namespace WebApi.Features.Auth.Services;
 
 public class TokenHelper
 {
-    public static async Task<string> GenerateAccessToken(Guid userId)
+    public static async Task<string> GenerateAccessToken(User user)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Convert.FromBase64String(JWTSetting.JwtOptions.Key);
-        var claimsIdentity = new ClaimsIdentity(new[] {
-            new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
-            new Claim("userid", userId.ToString()),
-        });
+        
+        
+        var roleClaims = new List<Claim>();
+
+        foreach (var userRole in user.Roles)
+        {
+            var role = userRole.Name;
+            roleClaims.Add(new Claim("roles", role.ToString()));
+        }
+
+        var claimsIdentity = new ClaimsIdentity(new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim("userid", user.Id.ToString()),
+            }.Union(roleClaims)
+        );
+        
+        
         var signingCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature);
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = claimsIdentity,
             Issuer = JWTSetting.JwtOptions.Issuer,
             Audience = JWTSetting.JwtOptions.Audience,
-            Expires = DateTime.Now.AddMinutes(15),
+            Expires = DateTime.Now.AddMinutes(5),
             SigningCredentials = signingCredentials,
         };
         var securityToken = tokenHandler.CreateToken(tokenDescriptor);

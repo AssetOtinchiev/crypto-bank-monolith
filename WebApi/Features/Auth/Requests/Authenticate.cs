@@ -38,7 +38,7 @@ public static class Authenticate
             {
                 var user = await dbContext.Users.SingleOrDefaultAsync(user => user.Email == x.Email, token);
                 var passwordHash =
-                    PasswordHelper.HashUsingPbkdf2(x.Password, Convert.FromBase64String(user.PasswordSalt));
+                    PasswordHelper.HashUsingArgon2(x.Password, Convert.FromBase64String(user.PasswordSalt));
 
                 if (user.Password != passwordHash)
                 {
@@ -63,8 +63,10 @@ public static class Authenticate
 
         public async Task<Response> Handle(Request request, CancellationToken cancellationToken)
         {
-            var user = _dbContext.Users.SingleOrDefault(user => user.Email == request.RegisterUserModel.Email);
-            var token = await Task.Run(() => _tokenService.GenerateTokensAsync(user.Id, cancellationToken));
+            var user = _dbContext.Users
+                .Include(x=> x.Roles)
+                .SingleOrDefault(user => user.Email == request.RegisterUserModel.Email);
+            var token = await Task.Run(() => _tokenService.GenerateTokensAsync(user, cancellationToken));
 
             var refreshTokenModel = new RefreshTokenModel
             {
