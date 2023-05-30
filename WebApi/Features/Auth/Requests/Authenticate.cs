@@ -2,9 +2,11 @@ using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Database;
+using WebApi.Errors.Exceptions;
 using WebApi.Features.Auth.Models;
 using WebApi.Features.Auth.Services;
 using WebApi.Shared;
+using WebApi.Validations;
 
 namespace WebApi.Features.Auth.Requests;
 
@@ -19,34 +21,9 @@ public static class Authenticate
         public RequestValidator(AppDbContext dbContext)
         {
             ClassLevelCascadeMode = CascadeMode.Stop;
-            RuleFor(x => x.RegisterUserModel.Email)
-                .MinimumLength(4)
-                .EmailAddress();
+            RuleFor(x => x.RegisterUserModel.Email).ValidEmail();
 
-            RuleFor(x => x.RegisterUserModel.Password)
-                .MinimumLength(7);
-
-            RuleFor(x => x.RegisterUserModel.Email).MustAsync(async (x, token) =>
-            {
-                var userExists = await dbContext.Users.AnyAsync(user => user.Email == x, token);
-
-                return userExists;
-            }).WithMessage("Email not found");
-
-
-            RuleFor(x => x.RegisterUserModel).MustAsync(async (x, token) =>
-            {
-                var user = await dbContext.Users.SingleOrDefaultAsync(user => user.Email == x.Email, token);
-                var passwordHash =
-                    PasswordHelper.HashUsingArgon2(x.Password, Convert.FromBase64String(user.PasswordSalt));
-
-                if (user.Password != passwordHash)
-                {
-                    return false;
-                }
-
-                return true;
-            }).WithMessage("Invalid Password");
+            RuleFor(x => x.RegisterUserModel.Password).ValidPassword();
         }
     }
 
@@ -66,6 +43,20 @@ public static class Authenticate
             var user = _dbContext.Users
                 .Include(x=> x.Roles)
                 .SingleOrDefault(user => user.Email == request.RegisterUserModel.Email);
+
+            if (user == null)
+            {
+                throw new ValidationErrorsException($"{nameof(request.RegisterUserModel.Email)}", "Invalid credentials","");
+            }
+            
+            var passwordHash =
+                PasswordHelper.HashUsingArgon2(request.RegisterUserModel.Password, Convert.FromBase64String(user.PasswordSalt));
+            if (user.Password != passwordHash)
+            {
+                
+                throw new ValidationErrorsException($"{nameof(request.RegisterUserModel.Email)}", "Invalid credentials","");
+            }
+            
             var token = await _tokenService.GenerateTokensAsync(user, cancellationToken);
 
             var refreshTokenModel = new AccessTokenModel

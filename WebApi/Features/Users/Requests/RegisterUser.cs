@@ -7,6 +7,7 @@ using WebApi.Features.Users.Domain;
 using WebApi.Features.Users.Models;
 using WebApi.Features.Users.Options;
 using WebApi.Shared;
+using WebApi.Validations;
 
 namespace WebApi.Features.Users.Requests;
 
@@ -21,12 +22,9 @@ public static class RegisterUser
         public RequestValidator(AppDbContext dbContext)
         {
             ClassLevelCascadeMode = CascadeMode.Stop;
-            RuleFor(x => x.RegisterUserModel.Email)
-                .MinimumLength(4)
-                .EmailAddress();
+            RuleFor(x => x.RegisterUserModel.Email).ValidEmail();
 
-            RuleFor(x => x.RegisterUserModel.Password)
-                .MinimumLength(7);
+            RuleFor(x => x.RegisterUserModel.Password).ValidPassword();
             
             RuleFor(x => x.RegisterUserModel.DateOfBirth)
                 .NotEmpty();
