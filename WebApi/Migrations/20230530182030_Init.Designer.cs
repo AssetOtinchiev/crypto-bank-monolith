@@ -12,7 +12,7 @@ using WebApi.Database;
 namespace WebApi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20230530162337_Init")]
+    [Migration("20230530182030_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -115,10 +115,6 @@ namespace WebApi.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Password")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("PasswordSalt")
                         .IsRequired()
                         .HasColumnType("text");
 

@@ -17,8 +17,7 @@ public class User
 
     public string Email { get; set; }
     public string Password { get; set; }
-    public string PasswordSalt { get; set; }
-    
+
     public virtual ICollection<RefreshToken> RefreshTokens { get; set; }
     public virtual ICollection<Role> Roles { get; set; }
     

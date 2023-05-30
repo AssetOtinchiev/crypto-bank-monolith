@@ -64,10 +64,7 @@ public class AppDbContext : DbContext
             
             user.Property(e => e.Password)
                 .IsRequired();
-            
-            user.Property(e => e.PasswordSalt)
-                .IsRequired();
-            
+
             user.Property(e => e.DateOfBirth)
                 .IsRequired();
             

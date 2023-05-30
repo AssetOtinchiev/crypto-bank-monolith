@@ -62,7 +62,7 @@ public static class RegisterUser
                 role = RoleType.Administrator;
             }
             
-            var user = ToUser(request.RegisterUserModel, passwordHex, Convert.ToBase64String(salt), role);
+            var user = ToUser(request.RegisterUserModel, passwordHex, role);
             await _dbContext.Users.AddAsync(user, cancellationToken);
             await _dbContext.SaveChangesAsync(cancellationToken);
 
@@ -70,13 +70,12 @@ public static class RegisterUser
         }
     }
 
-    private static User ToUser(RegisterUserModel registerUserModel, string passwordHex, string passwordSalt, RoleType role)
+    private static User ToUser(RegisterUserModel registerUserModel, string passwordHex, RoleType role)
     {
         return new User()
         {
             Id = Guid.NewGuid(),
             Password = passwordHex,
-            PasswordSalt = passwordSalt,
             Email = registerUserModel.Email,
             DateOfBirth = registerUserModel.DateOfBirth.Value,
             RegisteredAt = DateTime.Now.ToUniversalTime(),
