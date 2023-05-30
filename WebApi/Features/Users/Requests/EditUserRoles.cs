@@ -56,7 +56,7 @@ public class EditUserRoles
             }
 
             var userRoles = await _dbContext.Roles.Where(x => x.UserId == request.UserId)
-                .ToArrayAsync(cancellationToken: cancellationToken);
+                .ToArrayAsync(cancellationToken);
 
             _dbContext.Roles.RemoveRange(userRoles);
             _dbContext.Roles.AddRange(roles);
