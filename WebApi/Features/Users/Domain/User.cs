@@ -12,7 +12,7 @@ public class User
     }
     
     public Guid Id { get; set; }
-    public DateTime DateOfRegistration { get; set; } = DateTime.Now.ToUniversalTime();
+    public DateTime RegisteredAt { get; set; }
     public DateTime DateOfBirth { get; set; }
 
     public string Email { get; set; }

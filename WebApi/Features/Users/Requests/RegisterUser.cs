@@ -57,7 +57,7 @@ public static class RegisterUser
             var passwordHash = PasswordHelper.HashUsingArgon2(request.RegisterUserModel.Password, salt);
 
             var role = RoleType.User;
-            var isExistAdmin = await _dbContext.Roles.AnyAsync(x => x.Name == RoleType.Administrator, cancellationToken: cancellationToken);
+            var isExistAdmin = await _dbContext.Roles.AnyAsync(x => x.Name == RoleType.Administrator, cancellationToken);
             if (!isExistAdmin && request.RegisterUserModel.Email == _usersOptions.AdministratorEmail)
             {
                 role = RoleType.Administrator;
@@ -67,7 +67,7 @@ public static class RegisterUser
             await _dbContext.Users.AddAsync(user, cancellationToken);
             await _dbContext.SaveChangesAsync(cancellationToken);
 
-            return new Response(ToUserDto(user));
+            return new Response(ToUserModel(user));
         }
     }
 
@@ -80,24 +80,26 @@ public static class RegisterUser
             PasswordSalt = passwordSalt,
             Email = registerUserModel.Email,
             DateOfBirth = registerUserModel.DateOfBirth,
+            RegisteredAt = DateTime.Now.ToUniversalTime(),
             Roles = new List<Role>()
             {
                 new()
                 {
-                    Name = role
+                    Name = role,
+                    CreatedAt = DateTime.Now.ToUniversalTime()
                 }
             }
         };
     }
 
-    private static UserModel ToUserDto(User user)
+    private static UserModel ToUserModel(User user)
     {
         return new UserModel()
         {
             Id = user.Id,
             Email = user.Email,
             DateOfBirth = user.DateOfBirth,
-            DateOfRegistration = user.DateOfRegistration
+            DateOfRegistration = user.RegisteredAt
         };
     }
 }

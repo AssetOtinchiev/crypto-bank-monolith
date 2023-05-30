@@ -71,7 +71,7 @@ public class AppDbContext : DbContext
             user.Property(e => e.DateOfBirth)
                 .IsRequired();
             
-            user.Property(e => e.DateOfRegistration)
+            user.Property(e => e.RegisteredAt)
                 .IsRequired();
         });
     }

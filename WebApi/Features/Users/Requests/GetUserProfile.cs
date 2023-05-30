@@ -46,7 +46,7 @@ public class GetUserProfile
                 Id = user.Id,
                 Email = user.Email,
                 DateOfBirth = user.DateOfBirth,
-                DateOfRegistration = user.DateOfRegistration
+                DateOfRegistration = user.RegisteredAt
             });
         }
     }

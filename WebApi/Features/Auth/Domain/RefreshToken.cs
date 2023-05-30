@@ -5,7 +5,7 @@ namespace WebApi.Features.Auth.Domain;
 public class RefreshToken
 {
     public Guid Id { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.Now.ToUniversalTime();
+    public DateTime CreatedAt { get; set; }
     public Guid UserId { get; set; }
     public string TokenHash { get; set; }
     public string TokenSalt { get; set; }

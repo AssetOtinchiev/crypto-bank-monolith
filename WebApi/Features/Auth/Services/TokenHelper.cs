@@ -25,7 +25,6 @@ public class TokenHelper
 
         var claimsIdentity = new ClaimsIdentity(new[]
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim("userid", user.Id.ToString()),
             }.Union(roleClaims)
         );
@@ -37,11 +36,11 @@ public class TokenHelper
             Subject = claimsIdentity,
             Issuer = JWTSetting.JwtOptions.Issuer,
             Audience = JWTSetting.JwtOptions.Audience,
-            Expires = DateTime.Now.AddMinutes(5),
+            Expires = DateTime.Now.AddMinutes(JWTSetting.JwtOptions.Duration.Minutes),
             SigningCredentials = signingCredentials,
         };
         var securityToken = tokenHandler.CreateToken(tokenDescriptor);
-        return await Task.Run(() => tokenHandler.WriteToken(securityToken));
+        return tokenHandler.WriteToken(securityToken);
     }
     public static async Task<string> GenerateRefreshToken()
     {

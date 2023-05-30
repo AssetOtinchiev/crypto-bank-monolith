@@ -107,9 +107,6 @@ namespace WebApi.Migrations
                     b.Property<DateTime>("DateOfBirth")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime>("DateOfRegistration")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("text");
@@ -121,6 +118,9 @@ namespace WebApi.Migrations
                     b.Property<string>("PasswordSalt")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<DateTime>("RegisteredAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 

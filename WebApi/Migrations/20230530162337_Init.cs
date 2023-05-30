@@ -17,7 +17,7 @@ namespace WebApi.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    DateOfRegistration = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    RegisteredAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     DateOfBirth = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Email = table.Column<string>(type: "text", nullable: false),
                     Password = table.Column<string>(type: "text", nullable: false),

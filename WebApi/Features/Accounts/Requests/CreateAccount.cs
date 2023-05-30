@@ -69,7 +69,8 @@ public class CreateAccount
             {
                 UserId = request.UserId,
                 Amount = request.Amount,
-                Currency = request.Currency
+                Currency = request.Currency,
+                DateOfOpening = DateTime.Now.ToUniversalTime()
             };
             _dbContext.Accounts.Add(account);
 

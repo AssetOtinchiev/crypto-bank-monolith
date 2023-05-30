@@ -6,7 +6,7 @@ public class Role
 {
     public RoleType Name { get; set; }
     public Guid UserId { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.Now.ToUniversalTime();
+    public DateTime CreatedAt { get; set; }
     
     public virtual User User { get; set; }
 }

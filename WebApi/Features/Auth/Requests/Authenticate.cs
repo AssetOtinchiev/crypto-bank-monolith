@@ -12,7 +12,7 @@ public static class Authenticate
 {
     public record Request(AuthenticateModel RegisterUserModel) : IRequest<Response>;
 
-    public record Response(RefreshTokenModel UserModel);
+    public record Response(AccessTokenModel UserModel);
 
     public class RequestValidator : AbstractValidator<Request>
     {
@@ -66,14 +66,11 @@ public static class Authenticate
             var user = _dbContext.Users
                 .Include(x=> x.Roles)
                 .SingleOrDefault(user => user.Email == request.RegisterUserModel.Email);
-            var token = await Task.Run(() => _tokenService.GenerateTokensAsync(user, cancellationToken));
+            var token = await _tokenService.GenerateTokensAsync(user, cancellationToken);
 
-            var refreshTokenModel = new RefreshTokenModel
+            var refreshTokenModel = new AccessTokenModel
             {
-                AccessToken = token.Item1,
-                RefreshToken = token.Item2,
-                UserId = user.Id,
-                Email = user.Email
+                AccessToken = token.Item1
             };
 
             return new Response(refreshTokenModel);

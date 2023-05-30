@@ -16,7 +16,7 @@ public class AuthController : Controller
     }
 
     [HttpPost]
-    public async Task<RefreshTokenModel> Authenticate(AuthenticateModel authenticateModel, CancellationToken cancellationToken)
+    public async Task<AccessTokenModel> Authenticate(AuthenticateModel authenticateModel, CancellationToken cancellationToken)
     {
         var response = await _dispatcher.Dispatch(new Authenticate.Request(authenticateModel), cancellationToken);
         return response.UserModel;

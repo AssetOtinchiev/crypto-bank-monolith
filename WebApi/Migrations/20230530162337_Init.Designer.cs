@@ -12,7 +12,7 @@ using WebApi.Database;
 namespace WebApi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20230530044119_Init")]
+    [Migration("20230530162337_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -110,9 +110,6 @@ namespace WebApi.Migrations
                     b.Property<DateTime>("DateOfBirth")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime>("DateOfRegistration")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("text");
@@ -124,6 +121,9 @@ namespace WebApi.Migrations
                     b.Property<string>("PasswordSalt")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<DateTime>("RegisteredAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 

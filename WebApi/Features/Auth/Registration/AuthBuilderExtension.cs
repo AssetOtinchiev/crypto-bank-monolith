@@ -23,12 +23,7 @@ public static class AuthBuilderExtension
                 ClockSkew = TimeSpan.Zero
             };
         });
-        
-        
-        builder.Services.AddAuthorization(options =>
-        {
-        });
-        
+
         builder.Services.AddTransient<TokenService>();
         return builder;
     }

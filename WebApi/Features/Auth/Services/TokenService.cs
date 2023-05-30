@@ -15,41 +15,14 @@ public class TokenService
         _dbContext = dbContext;
     }
 
-    public async Task<Tuple<string, string>> GenerateTokensAsync(User user, CancellationToken cancellationToken)
+    public async Task<(string, string)> GenerateTokensAsync(User user, CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(user);
         var accessToken = await TokenHelper.GenerateAccessToken(user);
-       // var refreshToken = await TokenHelper.GenerateRefreshToken();
-
-        var userRecord = await _dbContext.Users
-            .Include(o => o.RefreshTokens)
-            .FirstOrDefaultAsync(e => e.Id == user.Id, cancellationToken: cancellationToken);
-
-        if (userRecord == null)
-        {
-            return null;
-        }
-
-        //var salt = PasswordHelper.GetSecureSalt();
-
-        // var refreshTokenHashed = PasswordHelper.HashUsingArgon2(refreshToken, salt);
-        //
-        // if (userRecord.RefreshTokens != null && userRecord.RefreshTokens.Any())
-        // {
-        //     await RemoveRefreshTokenAsync(userRecord);
-        // }
-        //
-        // userRecord.RefreshTokens?.Add(new RefreshToken
-        // {
-        //     ExpiryDate = DateTime.Now.AddDays(14).ToUniversalTime(),
-        //     CreatedAt = DateTime.Now.ToUniversalTime(),
-        //     UserId = user.Id,
-        //     TokenHash = refreshTokenHashed,
-        //     TokenSalt = Convert.ToBase64String(salt)
-        // });
-
+        
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        var token = new Tuple<string, string>(accessToken, "refreshToken");
+        (string, string) token = (accessToken, "refreshToken");
 
         return token;
     }

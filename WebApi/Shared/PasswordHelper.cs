@@ -9,10 +9,7 @@ public class PasswordHelper
 {
     public static byte[] GetSecureSalt()
     {
-        var buffer = new byte[32];
-        using var rng = new RNGCryptoServiceProvider();
-        rng.GetBytes(buffer);
-        return buffer;
+        return RandomNumberGenerator.GetBytes(32);
     }
     public static string HashUsingArgon2(string password, byte[] salt)
     {
