@@ -42,7 +42,7 @@ public class GetUserRoles
             var roleModels = await _dbContext.Roles.Where(x=> x.UserId == request.UserId)
                 .Select(x => new RoleModel
                 {
-                    Id = x.Id,
+                    UserId = x.UserId,
                     Name = x.Name
                 }).ToArrayAsync();
             

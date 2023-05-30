@@ -12,7 +12,7 @@ using WebApi.Database;
 namespace WebApi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20230528143922_Init")]
+    [Migration("20230530044119_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -27,11 +27,11 @@ namespace WebApi.Migrations
 
             modelBuilder.Entity("WebApi.Features.Accounts.Domain.Account", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<long>("Number")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Number"));
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("numeric");
@@ -46,7 +46,7 @@ namespace WebApi.Migrations
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
-                    b.HasKey("Id");
+                    b.HasKey("Number");
 
                     b.HasIndex("UserId");
 
@@ -87,22 +87,16 @@ namespace WebApi.Migrations
 
             modelBuilder.Entity("WebApi.Features.Users.Domain.Role", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Name")
                         .HasColumnType("integer");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
 
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
+                    b.HasKey("UserId", "Name");
 
                     b.ToTable("Roles");
                 });
@@ -141,8 +135,7 @@ namespace WebApi.Migrations
                     b.HasOne("WebApi.Features.Users.Domain.User", "User")
                         .WithMany("Accounts")
                         .HasForeignKey("UserId")
-                        .IsRequired()
-                        .HasConstraintName("FK_Accounts_User");
+                        .IsRequired();
 
                     b.Navigation("User");
                 });
@@ -152,8 +145,7 @@ namespace WebApi.Migrations
                     b.HasOne("WebApi.Features.Users.Domain.User", "User")
                         .WithMany("RefreshTokens")
                         .HasForeignKey("UserId")
-                        .IsRequired()
-                        .HasConstraintName("FK_RefreshTokens_User");
+                        .IsRequired();
 
                     b.Navigation("User");
                 });

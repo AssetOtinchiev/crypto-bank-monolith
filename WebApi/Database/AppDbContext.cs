@@ -30,7 +30,7 @@ public class AppDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        MapRefreshToken(modelBuilder);
+        MapRefreshTokens(modelBuilder);
         MapAccounts(modelBuilder);
         MapUsers(modelBuilder);
         MapRoles(modelBuilder);
@@ -40,7 +40,7 @@ public class AppDbContext : DbContext
     {
         modelBuilder.Entity<Role>(role =>
         {
-            role.HasKey(x => x.Id);
+            role.HasKey(x => new {x.UserId, x.Name});
             
             role.Property(e => e.UserId)
                 .IsRequired();
@@ -76,7 +76,7 @@ public class AppDbContext : DbContext
         });
     }
 
-    private static void MapRefreshToken(ModelBuilder modelBuilder)
+    private static void MapRefreshTokens(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<RefreshToken>(refreshToken =>
         {
@@ -96,8 +96,7 @@ public class AppDbContext : DbContext
             refreshToken.HasOne(d => d.User)
                 .WithMany(p => p.RefreshTokens)
                 .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_RefreshTokens_User");
+                .OnDelete(DeleteBehavior.ClientSetNull);
         });
     }
     
@@ -105,12 +104,9 @@ public class AppDbContext : DbContext
     {
         modelBuilder.Entity<Account>(account =>
         {
-            account.HasKey(x => x.Id);
+            account.HasKey(x => x.Number);
             
             account.Property(e => e.Amount)
-                .IsRequired();
-            
-            account.Property(e => e.Currency)
                 .IsRequired();
             
             account.Property(e => e.Currency)
@@ -121,12 +117,11 @@ public class AppDbContext : DbContext
             
             account.Property(e => e.UserId)
                 .IsRequired();
-            
+
             account.HasOne(d => d.User)
                 .WithMany(p => p.Accounts)
                 .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Accounts_User");
+                .OnDelete(DeleteBehavior.ClientSetNull);
         });
     }
 }

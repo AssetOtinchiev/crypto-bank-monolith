@@ -45,7 +45,7 @@ public class GetAccounts
                 .Where(x => x.UserId == request.UserId)
                 .Select(x => new AccountModel()
                 {
-                    Id = x.Id,
+                    Number = x.Number,
                     UserId = x.UserId,
                     Amount = x.Amount,
                     Currency = x.Currency,

@@ -77,7 +77,7 @@ public class CreateAccount
 
             return new Response(new AccountModel
             {
-                Id = account.Id,
+                Number = account.Number,
                 Amount = account.Amount,
                 Currency = account.Currency,
                 UserId = account.UserId,

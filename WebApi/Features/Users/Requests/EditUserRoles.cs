@@ -64,7 +64,7 @@ public class EditUserRoles
 
             return new Response(roles.Select(x => new RoleModel
             {
-                Id = x.Id,
+                UserId = x.UserId,
                 Name = x.Name
             }).ToArray());
         }

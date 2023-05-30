@@ -4,7 +4,7 @@ namespace WebApi.Features.Accounts.Domain;
 
 public class Account
 {
-    public long Id { get; set; }
+    public long Number { get; set; }
     public string Currency { get; set; }
     public decimal Amount { get; set; }
     public DateTime DateOfOpening { get; set; } = DateTime.Now.ToUniversalTime();

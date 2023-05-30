@@ -4,7 +4,6 @@ namespace WebApi.Features.Users.Domain;
 
 public class Role
 {
-    public Guid Id { get; set; }
     public RoleType Name { get; set; }
     public Guid UserId { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.Now.ToUniversalTime();
