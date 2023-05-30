@@ -54,8 +54,7 @@ public static class RegisterUser
         public async Task<Response> Handle(Request request, CancellationToken cancellationToken)
         {
             var salt = PasswordHelper.GetSecureSalt();
-            var passwordHash = PasswordHelper.HashUsingArgon2(request.RegisterUserModel.Password, salt);
-
+            var passwordHex = PasswordHelper.GetHexUsingArgon2T(request.RegisterUserModel.Password, salt);
             var role = RoleType.User;
             var isExistAdmin = await _dbContext.Roles.AnyAsync(x => x.Name == RoleType.Administrator, cancellationToken);
             if (!isExistAdmin && request.RegisterUserModel.Email == _usersOptions.AdministratorEmail)
@@ -63,7 +62,7 @@ public static class RegisterUser
                 role = RoleType.Administrator;
             }
             
-            var user = ToUser(request.RegisterUserModel, passwordHash, Convert.ToBase64String(salt), role);
+            var user = ToUser(request.RegisterUserModel, passwordHex, Convert.ToBase64String(salt), role);
             await _dbContext.Users.AddAsync(user, cancellationToken);
             await _dbContext.SaveChangesAsync(cancellationToken);
 
@@ -71,12 +70,12 @@ public static class RegisterUser
         }
     }
 
-    private static User ToUser(RegisterUserModel registerUserModel, string passwordHash, string passwordSalt, RoleType role)
+    private static User ToUser(RegisterUserModel registerUserModel, string passwordHex, string passwordSalt, RoleType role)
     {
         return new User()
         {
             Id = Guid.NewGuid(),
-            Password = passwordHash,
+            Password = passwordHex,
             PasswordSalt = passwordSalt,
             Email = registerUserModel.Email,
             DateOfBirth = registerUserModel.DateOfBirth.Value,

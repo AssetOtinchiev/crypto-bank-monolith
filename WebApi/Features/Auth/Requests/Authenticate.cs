@@ -48,10 +48,11 @@ public static class Authenticate
             {
                 throw new ValidationErrorsException($"{nameof(request.RegisterUserModel.Email)}", "Invalid credentials","");
             }
-            
+
+            var passwordParam = PasswordHelper.GetHashFromHexArgon2(user.Password);
             var passwordHash =
-                PasswordHelper.HashUsingArgon2(request.RegisterUserModel.Password, Convert.FromBase64String(user.PasswordSalt));
-            if (user.Password != passwordHash)
+                PasswordHelper.HashUsingArgon2(request.RegisterUserModel.Password, Convert.FromBase64String(passwordParam.salt));
+            if (passwordParam.hash != passwordHash)
             {
                 
                 throw new ValidationErrorsException($"{nameof(request.RegisterUserModel.Email)}", "Invalid credentials","");

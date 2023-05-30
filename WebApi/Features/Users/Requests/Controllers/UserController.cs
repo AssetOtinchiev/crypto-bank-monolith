@@ -28,6 +28,7 @@ public class UserController : Controller
     
     
     [HttpGet]
+    [Authorize]
     public async Task<UserModel> GetUserProfile(CancellationToken cancellationToken)
     {
         var user = HttpContext?.User;

@@ -9,6 +9,7 @@ public static class AuthBuilderExtension
 {
     public static WebApplicationBuilder AddAuth(this WebApplicationBuilder builder)
     {
+        builder.Configuration.GetSection(ArgonSecurityOptions.ArgonSecuritySectionName).Bind(ArgonSecurityOptions.Argon2IdParameters);
         builder.Configuration.GetSection(JWTSetting.JWTSectionName).Bind(JWTSetting.JwtOptions);
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
         {
