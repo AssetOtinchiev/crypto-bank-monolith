@@ -2,6 +2,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Database;
+using WebApi.Features.Accounts.Models;
 
 namespace WebApi.Features.Accounts.Requests;
 
@@ -9,7 +10,7 @@ public class GetAccountOpenedByPeriod
 {
     public record Request(DateTime StartDate, DateTime EndDate) : IRequest<Response>;
 
-    public record Response(int Count);
+    public record Response(GetAccountOpenedByPeriodModel[] GetAccountOpenedByPeriodModel);
 
     public class RequestValidator : AbstractValidator<Request>
     {
@@ -21,6 +22,16 @@ public class GetAccountOpenedByPeriod
 
             RuleFor(x => x.EndDate)
                 .NotEmpty();
+
+            RuleFor(x => x)
+                .Must(x =>
+                {
+                    if (x.StartDate > x.EndDate)
+                    {
+                        return false;
+                    }
+                    return true;
+                }).WithMessage("StartDate is more thank endDate");
         }
     }
 
@@ -38,7 +49,12 @@ public class GetAccountOpenedByPeriod
             var accountCount = await _dbContext.Accounts
                 .Where(x => x.DateOfOpening >= request.StartDate)
                 .Where(x => x.DateOfOpening <= request.EndDate)
-                .CountAsync(cancellationToken: cancellationToken);
+                .GroupBy(x => x.DateOfOpening)
+                .Select(x => new GetAccountOpenedByPeriodModel
+                {
+                    Date = x.Key.Date,
+                    Count = x.Count()
+                }).ToArrayAsync(cancellationToken);
 
             return new Response(accountCount);
         }

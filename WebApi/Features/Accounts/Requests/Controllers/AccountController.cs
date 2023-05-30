@@ -19,9 +19,9 @@ public class AccountController : Controller
     
     [HttpPost]
     [Authorize]
-    public async Task<AccountModel> RegisterUser(CreateAccountModel registerUserModel, CancellationToken cancellationToken)
+    public async Task<AccountModel> CreateAccount(CreateAccount.Request request, CancellationToken cancellationToken)
     {
-        var response = await _dispatcher.Dispatch(new CreateAccount.Request(registerUserModel), cancellationToken);
+        var response = await _dispatcher.Dispatch(new CreateAccount.Request(request.UserId, request.Currency, request.Amount), cancellationToken);
         return response.AccountModel;
     }
     
@@ -36,9 +36,9 @@ public class AccountController : Controller
     
     [HttpGet("period")]
     [Authorize(Roles = nameof(RoleType.Analyst))]
-    public async Task<int> GetAccountOpenedByPeriod(DateTime startDate, DateTime endDate, CancellationToken cancellationToken)
+    public async Task<GetAccountOpenedByPeriodModel[]> GetAccountOpenedByPeriod(DateTime startDate, DateTime endDate, CancellationToken cancellationToken)
     {
         var response = await _dispatcher.Dispatch(new GetAccountOpenedByPeriod.Request(startDate, endDate), cancellationToken);
-        return response.Count;
+        return response.GetAccountOpenedByPeriodModel;
     }
 }

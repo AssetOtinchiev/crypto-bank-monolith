@@ -11,7 +11,7 @@ namespace WebApi.Features.Accounts.Requests;
 
 public class CreateAccount
 {
-    public record Request(CreateAccountModel CreateAccountModel) : IRequest<Response>;
+    public record Request(Guid UserId, string Currency, decimal Amount) : IRequest<Response>;
 
     public record Response(AccountModel AccountModel);
 
@@ -20,14 +20,14 @@ public class CreateAccount
         public RequestValidator(AppDbContext dbContext, IOptions<AccountsOptions> accountsOptions)
         {
             ClassLevelCascadeMode = CascadeMode.Stop;
-            RuleFor(x => x.CreateAccountModel.Amount)
+            RuleFor(x => x.Amount)
                 .GreaterThan(0);
 
-            RuleFor(x => x.CreateAccountModel.Currency)
+            RuleFor(x => x.Currency)
                 .NotEmpty()
                 .MinimumLength(3);
 
-            RuleFor(x => x.CreateAccountModel.UserId)
+            RuleFor(x => x.UserId)
                 .NotEmpty()
                 .MustAsync(async (x, token) =>
                 {
@@ -37,7 +37,7 @@ public class CreateAccount
                 }).WithMessage("User not exists in database");
 
 
-            RuleFor(x => x.CreateAccountModel.UserId)
+            RuleFor(x => x.UserId)
                 .MustAsync(async (x, token) =>
                 {
                     var accountCount = await dbContext.Accounts
@@ -67,9 +67,9 @@ public class CreateAccount
         {
             var account = new Account()
             {
-                UserId = request.CreateAccountModel.UserId,
-                Amount = request.CreateAccountModel.Amount,
-                Currency = request.CreateAccountModel.Currency
+                UserId = request.UserId,
+                Amount = request.Amount,
+                Currency = request.Currency
             };
             _dbContext.Accounts.Add(account);
 
