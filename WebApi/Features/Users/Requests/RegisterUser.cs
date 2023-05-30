@@ -33,9 +33,9 @@ public static class RegisterUser
 
             RuleFor(x => x.RegisterUserModel.Email).MustAsync(async (x, token) =>
             {
-                var isExistUser = await dbContext.Users.AnyAsync(user => user.Email == x);
+                var userExists = await dbContext.Users.AnyAsync(user => user.Email == x);
             
-                return !isExistUser;
+                return !userExists;
             }).WithMessage("User already exists with the same email");
         }
     }

@@ -28,9 +28,9 @@ public static class Authenticate
 
             RuleFor(x => x.RegisterUserModel.Email).MustAsync(async (x, token) =>
             {
-                var isExistUser = await dbContext.Users.AnyAsync(user => user.Email == x, token);
+                var userExists = await dbContext.Users.AnyAsync(user => user.Email == x, token);
 
-                return isExistUser;
+                return userExists;
             }).WithMessage("Email not found");
 
 

@@ -31,9 +31,9 @@ public class CreateAccount
                 .NotEmpty()
                 .MustAsync(async (x, token) =>
                 {
-                    var isExistUser = await dbContext.Users.AnyAsync(user => user.Id == x, token);
+                    var userExists = await dbContext.Users.AnyAsync(user => user.Id == x, token);
 
-                    return isExistUser;
+                    return userExists;
                 }).WithMessage("User not exists in database");
 
 
@@ -42,7 +42,7 @@ public class CreateAccount
                 {
                     var accountCount = await dbContext.Accounts
                         .Where(account => account.UserId == x)
-                        .CountAsync();
+                        .CountAsync(token);
 
                     if (accountCount == accountsOptions.Value.MaxAvailableAccounts)
                     {

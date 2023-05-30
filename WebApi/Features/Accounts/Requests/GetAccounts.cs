@@ -23,9 +23,9 @@ public class GetAccounts
                 .NotEmpty()
                 .MustAsync(async (x, token) =>
                 {
-                    var isExistUser = await dbContext.Users.AnyAsync(user => user.Id == x, token);
+                    var userExists = await dbContext.Users.AnyAsync(user => user.Id == x, token);
 
-                    return isExistUser;
+                    return userExists;
                 }).WithMessage("User not exists in database");
         }
     }
