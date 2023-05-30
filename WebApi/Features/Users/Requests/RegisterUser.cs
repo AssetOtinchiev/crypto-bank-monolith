@@ -8,6 +8,7 @@ using WebApi.Features.Users.Domain;
 using WebApi.Features.Users.Models;
 using WebApi.Features.Users.Options;
 using WebApi.Shared;
+using WebApi.Validations;
 
 namespace WebApi.Features.Users.Requests;
 
@@ -21,26 +22,21 @@ public static class RegisterUser
     {
         public RequestValidator(AppDbContext dbContext)
         {
-            RuleFor(x => x.RegisterUserModel.Password)
-                .MinimumLength(7);
+            ClassLevelCascadeMode = CascadeMode.Stop;
+            RuleFor(x => x.RegisterUserModel.Password).ValidPassword();
             
             RuleFor(x => x.RegisterUserModel.DateOfBirth)
                 .NotEmpty();
-            
-            RuleFor(x => x.RegisterUserModel.Email)
-                .Cascade(CascadeMode.Stop)  
+
+            RuleFor(x => x.RegisterUserModel.Email).ValidEmail();
+
+            RuleFor(x => x.RegisterUserModel)
                 .MustAsync(async (x, token) =>
                 {
-                    var emailValidation = new EmailAddressAttribute();
-                    if (string.IsNullOrWhiteSpace(x) || x.Length < 4 || !emailValidation.IsValid(x))
-                    {
-                        return false;
-                    }
-                
-                    var userExists = await dbContext.Users.AnyAsync(user => user.Email == x, token);
+                    var userExists = await dbContext.Users.AnyAsync(user => user.Email == x.Email, token);
             
                     return !userExists;
-                }).WithMessage("Email exists or incorrect email");
+                }).WithMessage("User already exists with the same email");
         }
     }
 

@@ -7,6 +7,7 @@ public static class RuleBuilderOptionsExtensions
     public static IRuleBuilderOptions<T, string> ValidEmail<T>(this IRuleBuilder<T, string> builder)
     {
         return builder
+            .NotEmpty()
             .MinimumLength(4)
             .WithMessage("Invalid credentials")
             .EmailAddress()
@@ -16,6 +17,7 @@ public static class RuleBuilderOptionsExtensions
     public static IRuleBuilderOptions<T, string> ValidPassword<T>(this IRuleBuilder<T, string> builder)
     {
         return builder
+            .NotEmpty()
             .MinimumLength(7)
             .WithMessage("Invalid credentials");
     }
