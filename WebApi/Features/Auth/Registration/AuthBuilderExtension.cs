@@ -19,6 +19,7 @@ public static class AuthBuilderExtension
                 ValidateIssuerSigningKey = true,
                 ValidIssuer = JWTSetting.JwtOptions.Issuer,
                 ValidAudience = JWTSetting.JwtOptions.Audience,
+                ValidateLifetime = true,
                 IssuerSigningKey = new SymmetricSecurityKey(Convert.FromBase64String(JWTSetting.JwtOptions.Key)),
                 ClockSkew = TimeSpan.Zero
             };
