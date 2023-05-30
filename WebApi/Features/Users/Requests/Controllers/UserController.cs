@@ -28,25 +28,24 @@ public class UserController : Controller
     
     
     [HttpGet]
-    public async Task<UserModel> GetUserProfile(Guid userId, CancellationToken cancellationToken)
+    public async Task<UserModel> GetUserProfile(CancellationToken cancellationToken)
     {
-        //todo get userid handler
-       //  var user = HttpContext?.User;
-       //  
-       // Guid userId = Guid.Empty;
-       // if (user != null && user.Claims.Any())
-       //  {
-       //     var claimUserId = user.Claims.FirstOrDefault(x => x.Type == "userid")?.Value;
-       //     if (string.IsNullOrEmpty(claimUserId))
-       //     {
-       //         throw new AuthenticationException("User not exist");
-       //     }
-       //
-       //     if (!Guid.TryParse(claimUserId, out userId))
-       //     {
-       //         throw new AuthenticationException("Invalid user id");
-       //     };
-       //  }
+        var user = HttpContext?.User;
+
+        Guid userId = Guid.Empty;
+        if (user != null && user.Claims.Any())
+        {
+            var claimUserId = user.Claims.FirstOrDefault(x => x.Type == "userid")?.Value;
+            if (string.IsNullOrEmpty(claimUserId))
+            {
+                throw new AuthenticationException("User not exist");
+            }
+
+            if (!Guid.TryParse(claimUserId, out userId))
+            {
+                throw new AuthenticationException("Invalid user id");
+            }
+        }
 
         var response = await _dispatcher.Dispatch(new GetUserProfile.Request(userId), cancellationToken);
         return response.UserModel;
