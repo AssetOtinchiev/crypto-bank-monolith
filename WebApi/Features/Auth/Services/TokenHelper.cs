@@ -13,8 +13,7 @@ public class TokenHelper
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Convert.FromBase64String(JWTSetting.JwtOptions.Key);
-        
-        
+
         var roleClaims = new List<Claim>();
 
         foreach (var userRole in user.Roles)
@@ -28,7 +27,6 @@ public class TokenHelper
                 new Claim("userid", user.Id.ToString()),
             }.Union(roleClaims)
         );
-        
         
         var signingCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature);
         var tokenDescriptor = new SecurityTokenDescriptor
