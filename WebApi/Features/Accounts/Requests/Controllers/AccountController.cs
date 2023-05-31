@@ -19,7 +19,7 @@ public class AccountController : Controller
     
     [HttpPost]
     [Authorize]
-    public async Task<AccountModel> CreateAccount(CreateAccount.Request request, CancellationToken cancellationToken)
+    public async Task<AccountModel> CreateAccount([FromBody]CreateAccount.Request request, CancellationToken cancellationToken)
     {
         var response = await _dispatcher.Dispatch(new CreateAccount.Request(request.UserId, request.Currency, request.Amount), cancellationToken);
         return response.AccountModel;

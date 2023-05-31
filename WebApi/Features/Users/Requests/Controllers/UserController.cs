@@ -1,10 +1,9 @@
 using System.Security.Authentication;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.OpenApi.Extensions;
 using WebApi.Features.Users.Domain;
 using WebApi.Features.Users.Models;
-using WebApi.Pipeline;
 
 namespace WebApi.Features.Users.Requests.Controllers;
 
@@ -12,21 +11,18 @@ namespace WebApi.Features.Users.Requests.Controllers;
 [Route("/users")]
 public class UserController : Controller
 {
-    private readonly Dispatcher _dispatcher;
 
-    public UserController(Dispatcher dispatcher)
-    {
-        _dispatcher = dispatcher;
-    }
+    private readonly IMediator _mediator;
+
+    public UserController(IMediator mediator) => _mediator = mediator;
 
     [HttpPost]
-    public async Task<UserModel> RegisterUser(RegisterUserModel registerUserModel, CancellationToken cancellationToken)
+    public async Task<UserModel> RegisterUser([FromBody]RegisterUser.Request request, CancellationToken cancellationToken)
     {
-        var response = await _dispatcher.Dispatch(new RegisterUser.Request(registerUserModel), cancellationToken);
+        var response = await _mediator.Send(request, cancellationToken);
         return response.UserModel;
     }
-    
-    
+
     [HttpGet]
     [Authorize]
     public async Task<UserModel> GetUserProfile(CancellationToken cancellationToken)
@@ -47,24 +43,23 @@ public class UserController : Controller
                 throw new AuthenticationException("Invalid user id");
             }
         }
-
-        var response = await _dispatcher.Dispatch(new GetUserProfile.Request(userId), cancellationToken);
+        var response = await _mediator.Send(new GetUserProfile.Request(userId), cancellationToken);
         return response.UserModel;
     }
     
     [HttpGet("roles")]
     [Authorize(Roles = nameof(RoleType.Administrator))]
-    public async Task<RoleModel[]> GetUserRoles(Guid userId, CancellationToken cancellationToken)
+    public async Task<RoleModel[]> GetUserRoles([FromQuery]GetUserRoles.Request request, CancellationToken cancellationToken)
     {
-        var response = await _dispatcher.Dispatch(new GetUserRoles.Request(userId), cancellationToken);
+        var response = await _mediator.Send(request, cancellationToken);
         return response.RoleModels;
     }
     
     [HttpPut("roles")]
     [Authorize(Roles = nameof(RoleType.Administrator))]
-    public async Task<RoleModel[]> EditUserRoles([FromBody] RoleType[] roleTypes,Guid userId, CancellationToken cancellationToken)
+    public async Task<RoleModel[]> EditUserRoles([FromBody] EditUserRoles.Request request, CancellationToken cancellationToken)
     {
-        var response = await _dispatcher.Dispatch(new EditUserRoles.Request(roleTypes,userId), cancellationToken);
+        var response = await _mediator.Send(request, cancellationToken);
         return response.UserModel;
     }
     
