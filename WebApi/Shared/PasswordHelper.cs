@@ -65,7 +65,7 @@ public class PasswordHelper
             $"$argon2id$m={argon2.MemorySize},t={argon2.Iterations},p={argon2.DegreeOfParallelism}${Convert.ToBase64String(argon2.Salt)}${hash}";
     }
     
-    public SettingsFromHexArgon GetHashFromHexArgon2(string hex)
+    public SettingsFromHexArgon GetSettingsFromHexArgon2(string hex)
     {
         var splittedHex = hex.Split("$");
 
