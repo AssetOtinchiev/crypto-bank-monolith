@@ -46,17 +46,17 @@ public class GetAccountOpenedByPeriod
 
         public async Task<Response> Handle(Request request, CancellationToken cancellationToken)
         {
-            var accountCount = await _dbContext.Accounts
+            var groupedAccountCount = await _dbContext.Accounts
                 .Where(x => x.DateOfOpening >= request.StartDate)
                 .Where(x => x.DateOfOpening <= request.EndDate)
-                .GroupBy(x => x.DateOfOpening)
+                .GroupBy(x => x.DateOfOpening.Date)
                 .Select(x => new GetAccountOpenedByPeriodModel
                 {
                     Date = x.Key.Date,
                     Count = x.Count()
                 }).ToArrayAsync(cancellationToken);
 
-            return new Response(accountCount);
+            return new Response(groupedAccountCount);
         }
     }
 }
