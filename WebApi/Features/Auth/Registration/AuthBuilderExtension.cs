@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using WebApi.Features.Auth.Options;
 using WebApi.Features.Auth.Services;
+using WebApi.Shared;
 
 namespace WebApi.Features.Auth.Registration;
 
@@ -9,8 +10,10 @@ public static class AuthBuilderExtension
 {
     public static WebApplicationBuilder AddAuth(this WebApplicationBuilder builder)
     {
-        builder.Configuration.GetSection(ArgonSecurityOptions.ArgonSecuritySectionName).Bind(ArgonSecurityOptions.Argon2IdParameters);
         builder.Configuration.GetSection(JWTSetting.JWTSectionName).Bind(JWTSetting.JwtOptions);
+        builder.Services.Configure<ArgonSecurityOptions>(builder.Configuration.GetSection(ArgonSecurityOptions.ArgonSecuritySectionName));
+       
+        
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
         {
             options.TokenValidationParameters = new TokenValidationParameters
@@ -28,6 +31,7 @@ public static class AuthBuilderExtension
         builder.Services.AddAuthorization();
         
         builder.Services.AddTransient<TokenService>();
+        builder.Services.AddScoped<PasswordHelper>();
         return builder;
     }
 }

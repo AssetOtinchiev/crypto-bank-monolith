@@ -1,10 +1,8 @@
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using WebApi.Database;
 using WebApi.Features.Accounts.Models;
-using WebApi.Features.Accounts.Options;
 
 namespace WebApi.Features.Accounts.Requests;
 
@@ -51,7 +49,7 @@ public class GetAccounts
                     Currency = x.Currency,
                     DateOfOpening = x.DateOfOpening
                 })
-                .ToArrayAsync(cancellationToken: cancellationToken);
+                .ToArrayAsync(cancellationToken);
 
             return new Response(accounts);
         }

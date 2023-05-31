@@ -53,18 +53,20 @@ public static class RegisterUser
     public class RequestHandler : IRequestHandler<Request, Response>
     {
         private readonly AppDbContext _dbContext;
-        private readonly UsersOptions _usersOptions; 
+        private readonly UsersOptions _usersOptions;
+        private readonly PasswordHelper _passwordHelper;
 
-        public RequestHandler(AppDbContext dbContext, IOptions<UsersOptions> usersOptions)
+        public RequestHandler(AppDbContext dbContext, IOptions<UsersOptions> usersOptions, PasswordHelper passwordHelper)
         {
             _dbContext = dbContext;
+            _passwordHelper = passwordHelper;
             _usersOptions = usersOptions.Value;
         }
 
         public async Task<Response> Handle(Request request, CancellationToken cancellationToken)
         {
-            var salt = PasswordHelper.GetSecureSalt();
-            var passwordHex = PasswordHelper.GetHexUsingArgon2T(request.Password, salt);
+            var salt = _passwordHelper.GetSecureSalt();
+            var passwordHex = _passwordHelper.GetHexUsingArgon2T(request.Password, salt);
             var role = RoleType.User;
             var isExistAdmin = await _dbContext.Roles.AnyAsync(x => x.Name == RoleType.Administrator, cancellationToken);
             if (!isExistAdmin && request.Email == _usersOptions.AdministratorEmail)

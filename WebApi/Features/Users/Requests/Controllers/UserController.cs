@@ -11,7 +11,6 @@ namespace WebApi.Features.Users.Requests.Controllers;
 [Route("/users")]
 public class UserController : Controller
 {
-
     private readonly IMediator _mediator;
 
     public UserController(IMediator mediator) => _mediator = mediator;

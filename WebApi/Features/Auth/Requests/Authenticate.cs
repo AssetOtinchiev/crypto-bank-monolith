@@ -12,7 +12,7 @@ namespace WebApi.Features.Auth.Requests;
 
 public static class Authenticate
 {
-    public record Request(AuthenticateModel RegisterUserModel) : IRequest<Response>;
+    public record Request(string Email , string Password) : IRequest<Response>;
 
     public record Response(AccessTokenModel UserModel);
 
@@ -21,9 +21,9 @@ public static class Authenticate
         public RequestValidator(AppDbContext dbContext)
         {
             ClassLevelCascadeMode = CascadeMode.Stop;
-            RuleFor(x => x.RegisterUserModel.Email).ValidEmail();
+            RuleFor(x => x.Email).ValidEmail();
 
-            RuleFor(x => x.RegisterUserModel.Password).ValidPassword();
+            RuleFor(x => x.Password).ValidPassword();
         }
     }
 
@@ -31,31 +31,33 @@ public static class Authenticate
     {
         private readonly AppDbContext _dbContext;
         private readonly TokenService _tokenService;
+        private readonly PasswordHelper _passwordHelper;
 
-        public RequestHandler(AppDbContext dbContext, TokenService tokenService)
+        public RequestHandler(AppDbContext dbContext, TokenService tokenService, PasswordHelper passwordHelper)
         {
             _dbContext = dbContext;
             _tokenService = tokenService;
+            _passwordHelper = passwordHelper;
         }
 
         public async Task<Response> Handle(Request request, CancellationToken cancellationToken)
         {
             var user = _dbContext.Users
                 .Include(x=> x.Roles)
-                .SingleOrDefault(user => user.Email == request.RegisterUserModel.Email);
+                .SingleOrDefault(user => user.Email == request.Email);
 
             if (user == null)
             {
-                throw new ValidationErrorsException($"{nameof(request.RegisterUserModel.Email)}", "Invalid credentials","");
+                throw new ValidationErrorsException($"{nameof(request.Email)}", "Invalid credentials","");
             }
 
-            var passwordParam = PasswordHelper.GetHashFromHexArgon2(user.Password);
+            var passwordParam = _passwordHelper.GetHashFromHexArgon2(user.Password);
             var passwordHash =
-                PasswordHelper.HashUsingArgon2(request.RegisterUserModel.Password, Convert.FromBase64String(passwordParam.salt));
+                _passwordHelper.HashUsingArgon2(request.Password, Convert.FromBase64String(passwordParam.salt));
             if (passwordParam.hash != passwordHash)
             {
                 
-                throw new ValidationErrorsException($"{nameof(request.RegisterUserModel.Email)}", "Invalid credentials","");
+                throw new ValidationErrorsException($"{nameof(request.Email)}", "Invalid credentials","");
             }
             
             var token = await _tokenService.GenerateTokensAsync(user, cancellationToken);
