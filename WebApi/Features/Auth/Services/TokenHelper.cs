@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using WebApi.Features.Auth.Options;
 using WebApi.Features.Users.Domain;
@@ -9,10 +10,17 @@ namespace WebApi.Features.Auth.Services;
 
 public class TokenHelper
 {
-    public static async Task<string> GenerateAccessToken(User user)
+    private readonly JWTSetting _jwtSetting;
+
+    public TokenHelper(IOptions<JWTSetting> jwtSetting)
+    {
+        _jwtSetting = jwtSetting.Value;
+    }
+
+    public async Task<string> GenerateAccessToken(User user)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Convert.FromBase64String(JWTSetting.JwtOptions.Key);
+        var key = Convert.FromBase64String(_jwtSetting.Key);
 
         var roleClaims = new List<Claim>();
 
@@ -32,9 +40,9 @@ public class TokenHelper
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = claimsIdentity,
-            Issuer = JWTSetting.JwtOptions.Issuer,
-            Audience = JWTSetting.JwtOptions.Audience,
-            Expires = DateTime.Now.AddMinutes(JWTSetting.JwtOptions.Duration.Minutes),
+            Issuer = _jwtSetting.Issuer,
+            Audience = _jwtSetting.Audience,
+            Expires = DateTime.Now.AddMinutes(_jwtSetting.Duration.Minutes),
             SigningCredentials = signingCredentials,
         };
         var securityToken = tokenHandler.CreateToken(tokenDescriptor);

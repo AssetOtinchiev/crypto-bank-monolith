@@ -10,21 +10,21 @@ public static class AuthBuilderExtension
 {
     public static WebApplicationBuilder AddAuth(this WebApplicationBuilder builder)
     {
-        builder.Configuration.GetSection(JWTSetting.JWTSectionName).Bind(JWTSetting.JwtOptions);
         builder.Services.Configure<ArgonSecurityOptions>(builder.Configuration.GetSection(ArgonSecurityOptions.ArgonSecuritySectionName));
-       
-        
+        builder.Services.Configure<JWTSetting>(builder.Configuration.GetSection(JWTSetting.JWTSectionName));
+
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
         {
+            var jwtSetting = builder.Configuration.GetSection(JWTSetting.JWTSectionName).Get<JWTSetting>();
             options.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuer = true,
                 ValidateAudience = true,
                 ValidateIssuerSigningKey = true,
-                ValidIssuer = JWTSetting.JwtOptions.Issuer,
-                ValidAudience = JWTSetting.JwtOptions.Audience,
+                ValidIssuer = jwtSetting.Issuer,
+                ValidAudience = jwtSetting.Audience,
                 ValidateLifetime = true,
-                IssuerSigningKey = new SymmetricSecurityKey(Convert.FromBase64String(JWTSetting.JwtOptions.Key)),
+                IssuerSigningKey = new SymmetricSecurityKey(Convert.FromBase64String(jwtSetting.Key)),
                 ClockSkew = TimeSpan.Zero
             };
         });
@@ -32,6 +32,8 @@ public static class AuthBuilderExtension
         
         builder.Services.AddTransient<TokenService>();
         builder.Services.AddScoped<PasswordHelper>();
+        builder.Services.AddScoped<TokenHelper>();
+        
         return builder;
     }
 }
