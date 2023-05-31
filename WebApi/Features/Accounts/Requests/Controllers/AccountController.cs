@@ -1,3 +1,4 @@
+using System.Security.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Features.Accounts.Models;
@@ -30,8 +31,25 @@ public class AccountController : Controller
 
     [HttpGet]
     [Authorize]
-    public async Task<AccountModel[]> GetAccounts(Guid userId, CancellationToken cancellationToken)
+    public async Task<AccountModel[]> GetAccounts(CancellationToken cancellationToken)
     {
+        var user = HttpContext?.User;
+
+        Guid userId = Guid.Empty;
+        if (user != null && user.Claims.Any())
+        {
+            var claimUserId = user.Claims.FirstOrDefault(x => x.Type == "userid")?.Value;
+            if (string.IsNullOrEmpty(claimUserId))
+            {
+                throw new AuthenticationException("User not exist");
+            }
+
+            if (!Guid.TryParse(claimUserId, out userId))
+            {
+                throw new AuthenticationException("Invalid user id");
+            }
+        }
+
         var response = await _dispatcher.Dispatch(new GetAccounts.Request(userId), cancellationToken);
         return response.AccountModels;
     }
