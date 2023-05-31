@@ -48,7 +48,7 @@ public class TokenHelper
         var securityToken = tokenHandler.CreateToken(tokenDescriptor);
         return tokenHandler.WriteToken(securityToken);
     }
-    public static async Task<string> GenerateRefreshToken()
+    public async Task<string> GenerateRefreshToken()
     {
         var secureRandomBytes = new byte[32];
         using var randomNumberGenerator = RandomNumberGenerator.Create();
