@@ -15,7 +15,7 @@ public class AuthController : Controller
     [HttpPost]
     public async Task<AccessTokenModel> Authenticate(Authenticate.Request request, CancellationToken cancellationToken)
     {
-       var result = await _mediator.Send(request, cancellationToken);
-       return result.UserModel;
+        var result = await _mediator.Send(request, cancellationToken);
+        return result.UserModel;
     }
 }

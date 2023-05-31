@@ -16,7 +16,8 @@ public class UserController : Controller
     public UserController(IMediator mediator) => _mediator = mediator;
 
     [HttpPost]
-    public async Task<UserModel> RegisterUser([FromBody]RegisterUser.Request request, CancellationToken cancellationToken)
+    public async Task<UserModel> RegisterUser([FromBody] RegisterUser.Request request,
+        CancellationToken cancellationToken)
     {
         var response = await _mediator.Send(request, cancellationToken);
         return response.UserModel;
@@ -42,24 +43,26 @@ public class UserController : Controller
                 throw new AuthenticationException("Invalid user id");
             }
         }
+
         var response = await _mediator.Send(new GetUserProfile.Request(userId), cancellationToken);
         return response.UserModel;
     }
-    
+
     [HttpGet("roles")]
     [Authorize(Roles = nameof(RoleType.Administrator))]
-    public async Task<RoleModel[]> GetUserRoles([FromQuery]GetUserRoles.Request request, CancellationToken cancellationToken)
+    public async Task<RoleModel[]> GetUserRoles([FromQuery] GetUserRoles.Request request,
+        CancellationToken cancellationToken)
     {
         var response = await _mediator.Send(request, cancellationToken);
         return response.RoleModels;
     }
-    
+
     [HttpPut("roles")]
     [Authorize(Roles = nameof(RoleType.Administrator))]
-    public async Task<RoleModel[]> EditUserRoles([FromBody] EditUserRoles.Request request, CancellationToken cancellationToken)
+    public async Task<RoleModel[]> EditUserRoles([FromBody] EditUserRoles.Request request,
+        CancellationToken cancellationToken)
     {
         var response = await _mediator.Send(request, cancellationToken);
         return response.UserModel;
     }
-    
 }

@@ -16,16 +16,18 @@ public class AccountController : Controller
     {
         _dispatcher = dispatcher;
     }
-    
+
     [HttpPost]
     [Authorize]
-    public async Task<AccountModel> CreateAccount([FromBody]CreateAccount.Request request, CancellationToken cancellationToken)
+    public async Task<AccountModel> CreateAccount([FromBody] CreateAccount.Request request,
+        CancellationToken cancellationToken)
     {
-        var response = await _dispatcher.Dispatch(new CreateAccount.Request(request.UserId, request.Currency, request.Amount), cancellationToken);
+        var response =
+            await _dispatcher.Dispatch(new CreateAccount.Request(request.UserId, request.Currency, request.Amount),
+                cancellationToken);
         return response.AccountModel;
     }
-    
-    
+
     [HttpGet]
     [Authorize]
     public async Task<AccountModel[]> GetAccounts(Guid userId, CancellationToken cancellationToken)
@@ -33,12 +35,14 @@ public class AccountController : Controller
         var response = await _dispatcher.Dispatch(new GetAccounts.Request(userId), cancellationToken);
         return response.AccountModels;
     }
-    
+
     [HttpGet("period")]
     [Authorize(Roles = nameof(RoleType.Analyst))]
-    public async Task<GetAccountOpenedByPeriodModel[]> GetAccountOpenedByPeriod(DateTime startDate, DateTime endDate, CancellationToken cancellationToken)
+    public async Task<GetAccountOpenedByPeriodModel[]> GetAccountOpenedByPeriod(DateTime startDate, DateTime endDate,
+        CancellationToken cancellationToken)
     {
-        var response = await _dispatcher.Dispatch(new GetAccountOpenedByPeriod.Request(startDate, endDate), cancellationToken);
+        var response =
+            await _dispatcher.Dispatch(new GetAccountOpenedByPeriod.Request(startDate, endDate), cancellationToken);
         return response.GetAccountOpenedByPeriodModel;
     }
 }
