@@ -25,7 +25,8 @@ public static class AuthBuilderExtension
                 ClockSkew = TimeSpan.Zero
             };
         });
-
+        builder.Services.AddAuthorization();
+        
         builder.Services.AddTransient<TokenService>();
         return builder;
     }

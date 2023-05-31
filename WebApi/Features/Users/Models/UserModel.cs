@@ -5,6 +5,6 @@ public class UserModel
     public Guid Id { get; set; }
     public string Email { get; set; }
     
-    public DateTime DateOfRegistration { get; set; }
+    public DateTime RegisteredAt { get; set; }
     public DateTime DateOfBirth { get; set; }
 }

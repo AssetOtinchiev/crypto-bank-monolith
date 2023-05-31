@@ -107,7 +107,7 @@ public static class RegisterUser
             Id = user.Id,
             Email = user.Email,
             DateOfBirth = user.DateOfBirth,
-            DateOfRegistration = user.RegisteredAt
+            RegisteredAt = user.RegisteredAt
         };
     }
 }
