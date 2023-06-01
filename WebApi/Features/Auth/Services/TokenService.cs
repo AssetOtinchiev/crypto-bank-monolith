@@ -29,6 +29,9 @@ public class TokenService
             .Where(x => x.DeviceName == deviceName)
             .ToArray();
 
+        var expiredTokens = refreshTokens
+            .Where(x => x.ExpiryDate <= DateTime.Now.ToUniversalTime()).ToArray();
+
         var activeRefreshToken = refreshTokens.FirstOrDefault(x => !x.IsRevorked);
 
         var accessToken = await _tokenHelper.GenerateAccessToken(user);
@@ -36,12 +39,7 @@ public class TokenService
 
         var salt = _passwordHelper.GetSecureSalt();
         var refreshTokenHashed = _passwordHelper.GetHashUsingArgon2(refreshToken, salt);
-
-        // if (user.RefreshTokens != null && user.RefreshTokens.Any())
-        // {
-        //     await RemoveRefreshTokenAsync(user);
-        // }
-
+        
         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
@@ -62,6 +60,8 @@ public class TokenService
                 activeRefreshToken.IsRevorked = true;
                 activeRefreshToken.ReplacedBy = newRefreshToken.Id;
             }
+
+            _dbContext.RefreshTokens.RemoveRange(expiredTokens);
 
             await _dbContext.SaveChangesAsync(cancellationToken);
 
