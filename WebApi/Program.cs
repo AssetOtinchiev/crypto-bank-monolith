@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using Prometheus;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using WebApi.Database;
+using WebApi.Features.Accounts.Registration;
 using WebApi.Features.Auth.Registration;
 using WebApi.Features.Users.Registration;
 using WebApi.Observability;
@@ -32,18 +33,14 @@ builder.Services.AddSingleton<Dispatcher>();
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options => options.CustomSchemaIds(s => s.FullName.Replace("+", ".")));
 builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
 
-//todo remove
-// builder.Services.AddPersistenceInfrastructure(builder.Configuration);
-// builder.Services.AddApplicationLayer();
-//
-// builder.Services.AddAuthenticationAndAuthorization(builder.Configuration);
 
 // todo Features
 builder.AddUsers();
 builder.AddAuth();
+builder.AddAccounts();
 
 var app = builder.Build();
 
@@ -66,7 +63,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-//RegisterUserAPIs();
 app.Run();
 
 // void RegisterUserAPIs()

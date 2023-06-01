@@ -1,6 +1,6 @@
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Features.Auth.Models;
-using WebApi.Pipeline;
 
 namespace WebApi.Features.Auth.Requests.Controllers;
 
@@ -8,17 +8,14 @@ namespace WebApi.Features.Auth.Requests.Controllers;
 [Route("/auth")]
 public class AuthController : Controller
 {
-    private readonly Dispatcher _dispatcher;
+    private readonly IMediator _mediator;
 
-    public AuthController(Dispatcher dispatcher)
-    {
-        _dispatcher = dispatcher;
-    }
+    public AuthController(IMediator mediator) => _mediator = mediator;
 
     [HttpPost]
-    public async Task<RefreshTokenModel> Authenticate(AuthenticateModel authenticateModel, CancellationToken cancellationToken)
+    public async Task<AccessTokenModel> Authenticate(Authenticate.Request request, CancellationToken cancellationToken)
     {
-        var response = await _dispatcher.Dispatch(new Authenticate.Request(authenticateModel), cancellationToken);
-        return response.UserModel;
+        var result = await _mediator.Send(request, cancellationToken);
+        return result.UserModel;
     }
 }

@@ -1,16 +1,20 @@
+using System.ComponentModel.DataAnnotations;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using WebApi.Database;
 using WebApi.Features.Users.Domain;
 using WebApi.Features.Users.Models;
+using WebApi.Features.Users.Options;
 using WebApi.Shared;
+using WebApi.Validations;
 
 namespace WebApi.Features.Users.Requests;
 
 public static class RegisterUser
 {
-    public record Request(RegisterUserModel RegisterUserModel) : IRequest<Response>;
+    public record Request(string Email, string Password, DateTime? DateOfBirth) : IRequest<Response>;
 
     public record Response(UserModel UserModel);
 
@@ -18,62 +22,94 @@ public static class RegisterUser
     {
         public RequestValidator(AppDbContext dbContext)
         {
-            ClassLevelCascadeMode = CascadeMode.Stop;
-            RuleFor(x => x.RegisterUserModel.Email)
-                .MinimumLength(4)
-                .EmailAddress();
-
-            RuleFor(x => x.RegisterUserModel.Password)
-                .MinimumLength(7);
-
-            RuleFor(x => x.RegisterUserModel.Email).MustAsync(async (x, token) =>
-            {
-                var isExistUser = await dbContext.Users.AnyAsync(user => user.Email == x);
+            RuleFor(x => x.Password)
+                .Cascade(CascadeMode.Stop)
+                .NotEmpty()
+                .WithMessage("Password is empty")
+                .MinimumLength(7)
+                .WithMessage("Password too short");
             
-                return !isExistUser;
-            }).WithMessage("User already exists with the same email");
+            RuleFor(x => x.DateOfBirth)
+                .NotEmpty()
+                .WithMessage("Date is empty");
+
+            RuleFor(x => x.Email)
+                .Cascade(CascadeMode.Stop)
+                .NotEmpty()
+                .WithMessage("Email is empty")
+                .MinimumLength(4)
+                .WithMessage("Email too short")
+                .EmailAddress()
+                .WithMessage("Email format is wrong")
+                .MustAsync(async (x, token) =>
+                {
+                    var userExists = await dbContext.Users.AnyAsync(user => user.Email == x, token);
+
+                    return !userExists;
+                }).WithMessage("Email exists or incorrect email");
         }
     }
 
     public class RequestHandler : IRequestHandler<Request, Response>
     {
         private readonly AppDbContext _dbContext;
+        private readonly UsersOptions _usersOptions;
+        private readonly PasswordHelper _passwordHelper;
 
-        public RequestHandler(AppDbContext dbContext)
+        public RequestHandler(AppDbContext dbContext, IOptions<UsersOptions> usersOptions, PasswordHelper passwordHelper)
         {
             _dbContext = dbContext;
+            _passwordHelper = passwordHelper;
+            _usersOptions = usersOptions.Value;
         }
 
         public async Task<Response> Handle(Request request, CancellationToken cancellationToken)
         {
-            var salt = PasswordHelper.GetSecureSalt();
-            var passwordHash = PasswordHelper.HashUsingPbkdf2(request.RegisterUserModel.Password, salt);
-
-            var user = ToUser(request.RegisterUserModel, passwordHash, Convert.ToBase64String(salt));
+            var salt = _passwordHelper.GetSecureSalt();
+            var passwordHex = _passwordHelper.GetHexUsingArgon2T(request.Password, salt);
+            var role = RoleType.User;
+            var isExistAdmin = await _dbContext.Roles.AnyAsync(x => x.Name == RoleType.Administrator, cancellationToken);
+            if (!isExistAdmin && request.Email == _usersOptions.AdministratorEmail)
+            {
+                role = RoleType.Administrator;
+            }
+            
+            var user = ToUser(request.Email, request.DateOfBirth, passwordHex, role);
             await _dbContext.Users.AddAsync(user, cancellationToken);
             await _dbContext.SaveChangesAsync(cancellationToken);
 
-            return new Response(ToUserDto(user));
+            return new Response(ToUserModel(user));
         }
     }
 
-    public static User ToUser(RegisterUserModel registerUserModel, string passwordHash, string passwordSalt)
+    private static User ToUser(string email, DateTime? dateOfBirth, string passwordHex, RoleType role)
     {
         return new User()
         {
             Id = Guid.NewGuid(),
-            Password = passwordHash,
-            PasswordSalt = passwordSalt,
-            Email = registerUserModel.Email
+            Password = passwordHex,
+            Email = email,
+            DateOfBirth = dateOfBirth.Value,
+            RegisteredAt = DateTime.Now.ToUniversalTime(),
+            Roles = new List<Role>()
+            {
+                new()
+                {
+                    Name = role,
+                    CreatedAt = DateTime.Now.ToUniversalTime()
+                }
+            }
         };
     }
 
-    public static UserModel ToUserDto(User user)
+    private static UserModel ToUserModel(User user)
     {
         return new UserModel()
         {
             Id = user.Id,
             Email = user.Email,
+            DateOfBirth = user.DateOfBirth,
+            RegisteredAt = user.RegisteredAt
         };
     }
 }
