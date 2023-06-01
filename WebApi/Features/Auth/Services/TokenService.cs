@@ -97,4 +97,12 @@ public class TokenService
 
         return false;
     }
+
+    public async Task<Guid> GetUserIdFromToken(string accessToken)
+    {
+        var claimsPrincipal = _tokenHelper.GetPrincipalFromToken(accessToken);
+
+        var userId = claimsPrincipal.Claims.First(x => x.Type == "userid").Value;
+        return Guid.Parse(userId);
+    }
 }
