@@ -19,32 +19,60 @@ public class TokenService
         _passwordHelper = passwordHelper;
     }
 
-    public async Task<(string, string)> GenerateTokensAsync(User user, CancellationToken cancellationToken)
+    public async Task<(string, string)> GenerateTokensAsync(User user, string deviceName,
+        CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(user);
-        var accessToken = await _tokenHelper.GenerateAccessToken(user);
-         //var refreshToken = await _tokenHelper.GenerateRefreshToken();
-        
-        // var salt = _passwordHelper.GetSecureSalt();
-        //
-        //  var refreshTokenHashed = _passwordHelper.HashUsingArgon2(refreshToken, salt);
-        //
-        //  if (user.RefreshTokens != null && user.RefreshTokens.Any())
-        //  {
-        //      await RemoveRefreshTokenAsync(user);
-        //  }
-        //
-        //  user.RefreshTokens?.Add(new RefreshToken
-        //  {
-        //      ExpiryDate = DateTime.Now.AddDays(14).ToUniversalTime(),
-        //      CreatedAt = DateTime.Now.ToUniversalTime(),
-        //      UserId = user.Id,
-        //      TokenHash = refreshTokenHashed,
-        //      TokenSalt = Convert.ToBase64String(salt)
-        //  });
-        await _dbContext.SaveChangesAsync(cancellationToken);
 
-        (string, string) token = (accessToken, "refreshToken");
+        var refreshTokens = user.RefreshTokens
+            .OrderByDescending(x => x.CreatedAt)
+            .Where(x => x.DeviceName == deviceName)
+            .ToArray();
+
+        var activeRefreshToken = refreshTokens.FirstOrDefault(x => !x.IsRevorked);
+
+        var accessToken = await _tokenHelper.GenerateAccessToken(user);
+        var refreshToken = await _tokenHelper.GenerateRefreshToken();
+
+        var salt = _passwordHelper.GetSecureSalt();
+        var refreshTokenHashed = _passwordHelper.GetHashUsingArgon2(refreshToken, salt);
+
+        // if (user.RefreshTokens != null && user.RefreshTokens.Any())
+        // {
+        //     await RemoveRefreshTokenAsync(user);
+        // }
+
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            var newRefreshToken = new RefreshToken
+            {
+                ExpiryDate = DateTime.Now.AddDays(14).ToUniversalTime(),
+                CreatedAt = DateTime.Now.ToUniversalTime(),
+                UserId = user.Id,
+                TokenHash = refreshTokenHashed,
+                TokenSalt = Convert.ToBase64String(salt),
+                DeviceName = deviceName
+            };
+            user.RefreshTokens?.Add(newRefreshToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+
+            if (activeRefreshToken != null)
+            {
+                activeRefreshToken.IsRevorked = true;
+                activeRefreshToken.ReplacedBy = newRefreshToken.Id;
+            }
+
+            await _dbContext.SaveChangesAsync(cancellationToken);
+
+            await transaction.CommitAsync(cancellationToken);
+        }
+        catch (Exception)
+        {
+            await transaction.RollbackAsync(cancellationToken);
+        }
+
+        (string, string) token = (accessToken, refreshToken);
 
         return token;
     }

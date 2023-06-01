@@ -66,7 +66,7 @@ public static class RegisterUser
         public async Task<Response> Handle(Request request, CancellationToken cancellationToken)
         {
             var salt = _passwordHelper.GetSecureSalt();
-            var passwordHex = _passwordHelper.GetHexUsingArgon2T(request.Password, salt);
+            var passwordHex = _passwordHelper.GetHexUsingArgon2(request.Password, salt);
             var role = RoleType.User;
             var isExistAdmin = await _dbContext.Roles.AnyAsync(x => x.Name == RoleType.Administrator, cancellationToken);
             if (!isExistAdmin && request.Email == _usersOptions.AdministratorEmail)

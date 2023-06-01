@@ -12,7 +12,10 @@ namespace WebApi.Features.Auth.Requests;
 
 public static class Authenticate
 {
-    public record Request(string Email , string Password) : IRequest<Response>;
+    public record Request(string Email, string Password) : IRequest<Response>
+    {
+        public string? UserAgent { get; set; }
+    };
 
     public record Response(AccessTokenModel UserModel);
 
@@ -44,6 +47,7 @@ public static class Authenticate
         {
             var user = _dbContext.Users
                 .Include(x=> x.Roles)
+                .Include(x=> x.RefreshTokens)
                 .SingleOrDefault(user => user.Email == request.Email);
 
             if (user == null)
@@ -61,11 +65,12 @@ public static class Authenticate
                 throw new ValidationErrorsException($"{nameof(request.Email)}", "Invalid credentials","");
             }
             
-            var token = await _tokenService.GenerateTokensAsync(user, cancellationToken);
+            var token = await _tokenService.GenerateTokensAsync(user, request.UserAgent, cancellationToken);
 
             var refreshTokenModel = new AccessTokenModel
             {
-                AccessToken = token.Item1
+                AccessToken = token.Item1,
+                RefreshToken = token.Item2
             };
 
             return new Response(refreshTokenModel);

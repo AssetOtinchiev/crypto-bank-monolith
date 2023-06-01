@@ -21,7 +21,7 @@ public class PasswordHelper
         return RandomNumberGenerator.GetBytes(32);
     }
 
-    public string HashUsingArgon2(string password, byte[] salt)
+    public string GetHashUsingArgon2(string password, byte[] salt)
     {
         using var argon2 = new Argon2id(Encoding.UTF8.GetBytes(password));
 
@@ -49,7 +49,7 @@ public class PasswordHelper
         return Convert.ToBase64String(bytes);
     }
 
-    public string GetHexUsingArgon2T(string password, byte[] salt)
+    public string GetHexUsingArgon2(string password, byte[] salt)
     {
         using var argon2 = new Argon2id(Encoding.UTF8.GetBytes(password));
 
