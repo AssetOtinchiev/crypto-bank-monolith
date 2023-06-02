@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using WebApi.Database;
 using WebApi.Features.Auth.Domain;

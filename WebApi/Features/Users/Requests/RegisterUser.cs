@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -8,7 +7,6 @@ using WebApi.Features.Users.Domain;
 using WebApi.Features.Users.Models;
 using WebApi.Features.Users.Options;
 using WebApi.Shared;
-using WebApi.Validations;
 
 namespace WebApi.Features.Users.Requests;
 
