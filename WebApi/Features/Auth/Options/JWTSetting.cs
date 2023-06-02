@@ -7,4 +7,5 @@ public class JWTSetting
     public string Issuer { get; set; }
     public string Audience { get; set; }
     public TimeSpan Duration { get; set; }
+    public int ExpirationRefreshToken { get; set; } // days
 }

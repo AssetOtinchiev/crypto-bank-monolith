@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using WebApi.Database;
 using WebApi.Features.Auth.Domain;
+using WebApi.Features.Auth.Options;
 using WebApi.Features.Users.Domain;
 using WebApi.Shared;
 
@@ -11,12 +13,14 @@ public class TokenService
     private readonly AppDbContext _dbContext;
     private readonly TokenHelper _tokenHelper;
     private readonly PasswordHelper _passwordHelper;
+    private readonly JWTSetting _jwtSetting;
 
-    public TokenService(AppDbContext dbContext, TokenHelper tokenHelper, PasswordHelper passwordHelper)
+    public TokenService(AppDbContext dbContext, TokenHelper tokenHelper, PasswordHelper passwordHelper, IOptions<JWTSetting> jwtSetting)
     {
         _dbContext = dbContext;
         _tokenHelper = tokenHelper;
         _passwordHelper = passwordHelper;
+        _jwtSetting = jwtSetting.Value;
     }
 
     public async Task<(string, string)> GenerateTokensAsync(User user, string deviceName,
@@ -38,17 +42,17 @@ public class TokenService
         var refreshToken = await _tokenHelper.GenerateRefreshToken();
 
         var salt = _passwordHelper.GetSecureSalt();
-        var refreshTokenHashed = _passwordHelper.GetHashUsingArgon2(refreshToken, salt);
-        
+
+        var refreshTokenHex = _passwordHelper.GetHexUsingArgon2(refreshToken, salt);
         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
             var newRefreshToken = new RefreshToken
             {
-                ExpiryDate = DateTime.Now.AddDays(14).ToUniversalTime(),
+                ExpiryDate = DateTime.Now.AddDays(_jwtSetting.ExpirationRefreshToken).ToUniversalTime(),
                 CreatedAt = DateTime.Now.ToUniversalTime(),
                 UserId = user.Id,
-                TokenHash = refreshTokenHashed,
+                TokenHash = refreshTokenHex,
                 TokenSalt = Convert.ToBase64String(salt),
                 DeviceName = deviceName
             };
@@ -76,28 +80,7 @@ public class TokenService
 
         return token;
     }
-
-    public async Task<bool> RemoveRefreshTokenAsync(User user)
-    {
-        var userRecord = await _dbContext.Users
-            .Include(o => o.RefreshTokens)
-            .FirstOrDefaultAsync(e => e.Id == user.Id);
-
-        if (userRecord == null)
-        {
-            return false;
-        }
-
-        if (userRecord.RefreshTokens != null && userRecord.RefreshTokens.Any())
-        {
-            var currentRefreshToken = userRecord.RefreshTokens.First();
-
-            _dbContext.RefreshTokens.Remove(currentRefreshToken);
-        }
-
-        return false;
-    }
-
+    
     public async Task<Guid> GetUserIdFromToken(string accessToken)
     {
         var claimsPrincipal = _tokenHelper.GetPrincipalFromToken(accessToken);
