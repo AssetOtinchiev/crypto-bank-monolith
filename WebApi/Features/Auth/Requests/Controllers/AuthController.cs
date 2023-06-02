@@ -34,7 +34,7 @@ public class AuthController : Controller
         request.UserAgent = Request.Headers["User-Agent"].ToString();
         
         var refreshToken = Request.Cookies["refreshToken"];
-        request.RefreshToken = HttpUtility.UrlDecode(refreshToken);
+        request.RefreshToken = refreshToken;
         
         var result = await _mediator.Send(request, cancellationToken);
         return result.UserModel.AccessToken;

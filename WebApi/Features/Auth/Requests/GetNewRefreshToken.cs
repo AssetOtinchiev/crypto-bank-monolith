@@ -1,4 +1,3 @@
-using System.Text;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -54,12 +53,11 @@ public class GetNewRefreshToken
                 .Where(x => x.UserId == userId && x.DeviceName == request.UserAgent)
                 .OrderByDescending(x=> x.CreatedAt)
                 .ToArrayAsync(cancellationToken);
-
-
+            
             var exist = false;
             foreach (var refreshToken in refreshTokens)
             {
-                var refreshTokenHashed = _passwordHelper.GetHashUsingArgon2(request.RefreshToken, Encoding.UTF8.GetBytes(refreshToken.TokenSalt));
+                var refreshTokenHashed = _passwordHelper.GetHashUsingArgon2(request.RefreshToken, Convert.FromBase64String(refreshToken.TokenSalt));
                 if (refreshToken.TokenHash == refreshTokenHashed)
                 {
                     exist = true;
