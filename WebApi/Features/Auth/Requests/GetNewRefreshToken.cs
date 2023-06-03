@@ -52,8 +52,8 @@ public class GetNewRefreshToken
             var userId = await _tokenService.GetUserIdFromToken(request.AccessToken);
             var user = await _dbContext.Users
                 .Include(x=> x.RefreshTokens
-                    .Where(x => x.UserId == userId && x.DeviceName == request.UserAgent)
-                    .OrderByDescending(x=> x.CreatedAt))
+                    .Where(refreshToken => refreshToken.UserId == userId && refreshToken.DeviceName == request.UserAgent)
+                    .OrderByDescending(refreshToken=> refreshToken.CreatedAt))
                 .FirstAsync(x=> x.Id == userId, cancellationToken);
 
             var activeRefreshToken = user.RefreshTokens.FirstOrDefault(x => !x.IsRevorked);
