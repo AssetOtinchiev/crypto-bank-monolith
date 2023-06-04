@@ -29,11 +29,6 @@ public class TokenService
             .Where(x => x.DeviceName == deviceName)
             .ToArray();
 
-        var expiredTokens = refreshTokens
-            .Where(x => x.ExpiryDate <= DateTime.Now.ToUniversalTime()).ToArray();
-
-        var activeRefreshToken = refreshTokens.FirstOrDefault(x => !x.IsRevoked);
-
         var accessToken = _tokenHelper.GenerateAccessToken(user);
         var refreshToken = await _tokenHelper.GenerateRefreshToken();
         
@@ -51,12 +46,15 @@ public class TokenService
             user.RefreshTokens.Add(newRefreshToken);
             await _dbContext.SaveChangesAsync(cancellationToken);
         
+            var activeRefreshToken = refreshTokens.FirstOrDefault(x => !x.IsRevoked);
             if (activeRefreshToken != null)
             {
                 activeRefreshToken.IsRevoked = true;
                 activeRefreshToken.ReplacedBy = newRefreshToken.Id;
             }
         
+            var expiredTokens = refreshTokens
+                .Where(x => x.ExpiryDate <= DateTime.Now.ToUniversalTime()).ToArray();
             _dbContext.RefreshTokens.RemoveRange(expiredTokens);
         
             await _dbContext.SaveChangesAsync(cancellationToken);
