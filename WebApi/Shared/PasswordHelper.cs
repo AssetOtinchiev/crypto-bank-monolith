@@ -16,7 +16,7 @@ public class PasswordHelper
         _argonSecurityOptions = argonSecurityOptions.Value;
     }
 
-    public byte[] GetSecureSalt()
+    private byte[] GetSecureSalt()
     {
         return RandomNumberGenerator.GetBytes(32);
     }
@@ -45,8 +45,9 @@ public class PasswordHelper
         return passwordHex.Hash == hash;
     }
 
-    public string GetHexUsingArgon2(string password, byte[] salt)
+    public string GetHashUsingArgon2(string password)
     {
+        var salt = GetSecureSalt();
         using var argon2 = new Argon2id(Encoding.UTF8.GetBytes(password));
 
         argon2.Salt = salt;

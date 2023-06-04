@@ -40,9 +40,7 @@ public class TokenService
         var accessToken = _tokenHelper.GenerateAccessToken(user);
         var refreshToken = await _tokenHelper.GenerateRefreshToken();
 
-        var salt = _passwordHelper.GetSecureSalt();
-
-        var refreshTokenHex = _passwordHelper.GetHexUsingArgon2(refreshToken, salt);
+        var refreshTokenHex = _passwordHelper.GetHashUsingArgon2(refreshToken);
         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
