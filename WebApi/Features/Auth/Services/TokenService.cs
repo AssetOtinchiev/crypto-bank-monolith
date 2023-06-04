@@ -54,7 +54,7 @@ public class TokenService
                 Token = refreshTokenHex,
                 DeviceName = deviceName
             };
-            user.RefreshTokens?.Add(newRefreshToken);
+            user.RefreshTokens.Add(newRefreshToken);
             await _dbContext.SaveChangesAsync(cancellationToken);
 
             if (activeRefreshToken != null)
