@@ -66,9 +66,9 @@ public class GetNewTokensPair
             
             if (refreshTokenParams.Hash != refreshTokenHashed)
             {
-                foreach (var refreshTokenOnRevorke in user.RefreshTokens)
+                foreach (var refreshTokensToRevoke in user.RefreshTokens)
                 {
-                    refreshTokenOnRevorke.IsRevoked = true;
+                    refreshTokensToRevoke.IsRevoked = true;
                 }
 
                 await _dbContext.SaveChangesAsync(cancellationToken);
