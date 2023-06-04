@@ -49,10 +49,10 @@ public class GetNewTokensPair
         {
             var userId = await _tokenService.GetUserIdFromToken(request.AccessToken);
             var user = await _dbContext.Users
-                .Include(x=> x.RefreshTokens
+                .Include(x => x.RefreshTokens
                     .Where(rt => rt.UserId == userId && rt.DeviceName == request.UserAgent)
-                    .OrderByDescending(rTkn=> rTkn.CreatedAt))
-                .FirstAsync(x=> x.Id == userId, cancellationToken: cancellationToken);
+                    .OrderByDescending(rTkn => rTkn.CreatedAt))
+                .FirstAsync(x => x.Id == userId, cancellationToken: cancellationToken);
 
             var activeRefreshToken = user.RefreshTokens.FirstOrDefault(x => !x.IsRevoked);
             if (activeRefreshToken == null)
