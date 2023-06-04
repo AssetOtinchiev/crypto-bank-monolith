@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using WebApi.Features.Auth.Models;
 using WebApi.Features.Auth.Options;
 
 namespace WebApi.Features.Auth.Requests.Controllers;
@@ -20,35 +21,40 @@ public class AuthController : Controller
     }
 
     [HttpPost]
-    public async Task<string> Authenticate(Authenticate.Request request, CancellationToken cancellationToken)
+    public async Task<AccessTokenModel> Authenticate(Authenticate.Request request, CancellationToken cancellationToken)
     {
-        request.UserAgent = Request.Headers["User-Agent"].ToString();
+        request.UserAgent = GetUserAgentFromHeader();;
         var result = await _mediator.Send(request, cancellationToken);
-        AddRefreshTokenCookies(result.UserModel.RefreshToken);
+        AddRefreshTokenCookies(result.RefreshToken);
         
-        return result.UserModel.AccessToken;
+        return new AccessTokenModel()
+        {
+            AccessToken = result.AccessToken
+        };
     }
 
     [HttpGet("newTokens")]
-    public async Task<string> GetNewTokensPair([FromBody] GetNewTokensPair.Request request,
+    public async Task<AccessTokenModel> GetNewTokensPair([FromBody] GetNewTokensPair.Request request,
         CancellationToken cancellationToken)
     {
-        request.UserAgent = Request.Headers["User-Agent"].ToString();
-
+        request.UserAgent = GetUserAgentFromHeader();
         var refreshToken = Request.Cookies["refreshToken"];
         request.RefreshToken = refreshToken;
 
         var result = await _mediator.Send(request, cancellationToken);
-        HttpContext.Response.Cookies.Append("refreshToken", result.UserModel.RefreshToken, new CookieOptions
-        {
-            Expires = DateTime.Now.AddDays(_jwtSetting.ExpirationRefreshToken),
-            Path = RefreshTokenPath
-        });
-        AddRefreshTokenCookies(result.UserModel.RefreshToken);
+        AddRefreshTokenCookies(result.RefreshToken);
 
-        return result.UserModel.AccessToken;
+        return new AccessTokenModel()
+        {
+            AccessToken = result.AccessToken
+        };
     }
-    
+
+    private string GetUserAgentFromHeader()
+    {
+        return Request.Headers["User-Agent"].ToString();
+    }
+
     private void AddRefreshTokenCookies(string refreshToken)
     {
         HttpContext.Response.Cookies.Append("refreshToken", refreshToken, new CookieOptions

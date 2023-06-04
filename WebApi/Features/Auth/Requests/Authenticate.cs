@@ -3,7 +3,6 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Database;
 using WebApi.Errors.Exceptions;
-using WebApi.Features.Auth.Models;
 using WebApi.Features.Auth.Services;
 using WebApi.Shared;
 using WebApi.Validations;
@@ -17,7 +16,7 @@ public static class Authenticate
         public string? UserAgent { get; set; }
     };
 
-    public record Response(AccessTokenModel UserModel);
+    public record Response(string AccessToken, string RefreshToken);
 
     public class RequestValidator : AbstractValidator<Request>
     {
@@ -66,14 +65,7 @@ public static class Authenticate
             }
             
             var token = await _tokenService.GenerateTokensAsync(user, request.UserAgent, cancellationToken);
-
-            var refreshTokenModel = new AccessTokenModel
-            {
-                AccessToken = token.Item1,
-                RefreshToken = token.Item2
-            };
-
-            return new Response(refreshTokenModel);
+            return new Response(token.Item1, token.Item2);
         }
     }
 }
