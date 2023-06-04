@@ -11,13 +11,13 @@ namespace WebApi.Features.Auth.Requests.Controllers;
 public class AuthController : Controller
 {
     private readonly IMediator _mediator;
-    private readonly JWTSetting _jwtSetting;
+    private readonly AuthOptions _authOptions;
     private const string RefreshTokenPath = "/auth/refreshToken";
 
-    public AuthController(IMediator mediator, IOptions<JWTSetting> jwtSetting)
+    public AuthController(IMediator mediator, IOptions<AuthOptions> authOptions)
     {
         _mediator = mediator;
-        _jwtSetting = jwtSetting.Value;
+        _authOptions = authOptions.Value;
     }
 
     [HttpPost]
@@ -59,7 +59,7 @@ public class AuthController : Controller
     {
         HttpContext.Response.Cookies.Append("refreshToken", refreshToken, new CookieOptions
         {
-            Expires = DateTime.Now.AddDays(_jwtSetting.ExpirationRefreshToken),
+            Expires = DateTime.Now.AddHours(_authOptions.RefreshTokenExpiration.Hours),
             Path = RefreshTokenPath
         });
     }

@@ -11,17 +11,17 @@ namespace WebApi.Features.Auth.Services;
 
 public class TokenHelper
 {
-    private readonly JWTSetting _jwtSetting;
+    private readonly JwtOptions _jwtOptions;
 
-    public TokenHelper(IOptions<JWTSetting> jwtSetting)
+    public TokenHelper(IOptions<AuthOptions> authOptions)
     {
-        _jwtSetting = jwtSetting.Value;
+        _jwtOptions = authOptions.Value.Jwt;
     }
 
     public async Task<string> GenerateAccessToken(User user)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Convert.FromBase64String(_jwtSetting.Key);
+        var key = Convert.FromBase64String(_jwtOptions.Key);
 
         var roleClaims = new List<Claim>();
 
@@ -41,9 +41,9 @@ public class TokenHelper
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = claimsIdentity,
-            Issuer = _jwtSetting.Issuer,
-            Audience = _jwtSetting.Audience,
-            Expires = DateTime.Now.AddMinutes(_jwtSetting.Duration.Minutes),
+            Issuer = _jwtOptions.Issuer,
+            Audience = _jwtOptions.Audience,
+            Expires = DateTime.Now.AddMinutes(_jwtOptions.Duration.Minutes),
             SigningCredentials = signingCredentials,
         };
         var securityToken = tokenHandler.CreateToken(tokenDescriptor);
@@ -69,10 +69,10 @@ public class TokenHelper
                 ValidateIssuer = true,
                 ValidateAudience = true,
                 ValidateIssuerSigningKey = true,
-                ValidIssuer = _jwtSetting.Issuer,
-                ValidAudience = _jwtSetting.Audience,
+                ValidIssuer = _jwtOptions.Issuer,
+                ValidAudience = _jwtOptions.Audience,
                 ValidateLifetime = false,
-                IssuerSigningKey = new SymmetricSecurityKey(Convert.FromBase64String(_jwtSetting.Key)),
+                IssuerSigningKey = new SymmetricSecurityKey(Convert.FromBase64String(_jwtOptions.Key)),
             };
             var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out var validatedToken);
             if (!IsJwtWithValidSecurityAlgorithm(validatedToken))

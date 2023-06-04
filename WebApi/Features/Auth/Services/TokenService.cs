@@ -12,14 +12,14 @@ public class TokenService
     private readonly AppDbContext _dbContext;
     private readonly TokenHelper _tokenHelper;
     private readonly PasswordHelper _passwordHelper;
-    private readonly JWTSetting _jwtSetting;
+    private readonly AuthOptions _authOptions;
 
-    public TokenService(AppDbContext dbContext, TokenHelper tokenHelper, PasswordHelper passwordHelper, IOptions<JWTSetting> jwtSetting)
+    public TokenService(AppDbContext dbContext, TokenHelper tokenHelper, PasswordHelper passwordHelper, IOptions<AuthOptions> authOptions)
     {
         _dbContext = dbContext;
         _tokenHelper = tokenHelper;
         _passwordHelper = passwordHelper;
-        _jwtSetting = jwtSetting.Value;
+        _authOptions = authOptions.Value;
     }
 
     public async Task<(string accessToken, string refreshToken)> GenerateTokensAsync(User user, string deviceName,
@@ -48,7 +48,7 @@ public class TokenService
         {
             var newRefreshToken = new RefreshToken
             {
-                ExpiryDate = DateTime.Now.AddDays(_jwtSetting.ExpirationRefreshToken).ToUniversalTime(),
+                ExpiryDate = DateTime.Now.AddHours(_authOptions.RefreshTokenExpiration.Hours).ToUniversalTime(),
                 CreatedAt = DateTime.Now.ToUniversalTime(),
                 UserId = user.Id,
                 Token = refreshTokenHex,

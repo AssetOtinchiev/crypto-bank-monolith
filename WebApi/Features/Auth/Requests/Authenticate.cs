@@ -20,7 +20,7 @@ public static class Authenticate
 
     public class RequestValidator : AbstractValidator<Request>
     {
-        public RequestValidator(AppDbContext dbContext)
+        public RequestValidator()
         {
             ClassLevelCascadeMode = CascadeMode.Stop;
             RuleFor(x => x.Email).ValidEmail();
@@ -60,7 +60,6 @@ public static class Authenticate
                     passwordParam.DegreeOfParallelism, passwordParam.Iterations, passwordParam.MemorySize);
             if (passwordParam.Hash != passwordHash)
             {
-                
                 throw new ValidationErrorsException($"{nameof(request.Email)}", "Invalid credentials","");
             }
             
