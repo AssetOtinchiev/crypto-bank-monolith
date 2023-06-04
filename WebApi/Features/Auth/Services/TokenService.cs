@@ -22,7 +22,7 @@ public class TokenService
         _jwtSetting = jwtSetting.Value;
     }
 
-    public async Task<(string, string)> GenerateTokensAsync(User user, string deviceName,
+    public async Task<(string accessToken, string refreshToken)> GenerateTokensAsync(User user, string deviceName,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(user);
@@ -74,9 +74,7 @@ public class TokenService
             await transaction.RollbackAsync(cancellationToken);
         }
 
-        (string, string) token = (accessToken, refreshToken);
-
-        return token;
+        return (accessToken, refreshToken);
     }
     
     public async Task<Guid> GetUserIdFromToken(string accessToken)

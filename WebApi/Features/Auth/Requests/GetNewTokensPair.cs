@@ -76,7 +76,7 @@ public class GetNewTokensPair
             }
 
             var token = await _tokenService.GenerateTokensAsync(user, request.UserAgent, cancellationToken);
-            return new Response(token.Item1, token.Item2);
+            return new Response(token.accessToken, token.refreshToken);
         }
     }
 }
