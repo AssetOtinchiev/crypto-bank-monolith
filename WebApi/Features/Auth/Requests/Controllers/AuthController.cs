@@ -24,31 +24,37 @@ public class AuthController : Controller
     {
         request.UserAgent = Request.Headers["User-Agent"].ToString();
         var result = await _mediator.Send(request, cancellationToken);
-        HttpContext.Response.Cookies.Append("refreshToken", result.UserModel.RefreshToken, new CookieOptions
-        {
-            Expires = DateTime.Now.AddDays(_jwtSetting.ExpirationRefreshToken),
-            Path = RefreshTokenPath
-        });
+        AddRefreshTokenCookies(result.UserModel.RefreshToken);
         
         return result.UserModel.AccessToken;
     }
 
-
     [HttpGet("newTokens")]
-    public async Task<string> GetNewTokensPair([FromBody]GetNewTokensPair.Request request,CancellationToken cancellationToken)
+    public async Task<string> GetNewTokensPair([FromBody] GetNewTokensPair.Request request,
+        CancellationToken cancellationToken)
     {
         request.UserAgent = Request.Headers["User-Agent"].ToString();
-        
+
         var refreshToken = Request.Cookies["refreshToken"];
         request.RefreshToken = refreshToken;
-        
+
         var result = await _mediator.Send(request, cancellationToken);
         HttpContext.Response.Cookies.Append("refreshToken", result.UserModel.RefreshToken, new CookieOptions
         {
             Expires = DateTime.Now.AddDays(_jwtSetting.ExpirationRefreshToken),
             Path = RefreshTokenPath
         });
-        
+        AddRefreshTokenCookies(result.UserModel.RefreshToken);
+
         return result.UserModel.AccessToken;
+    }
+    
+    private void AddRefreshTokenCookies(string refreshToken)
+    {
+        HttpContext.Response.Cookies.Append("refreshToken", refreshToken, new CookieOptions
+        {
+            Expires = DateTime.Now.AddDays(_jwtSetting.ExpirationRefreshToken),
+            Path = RefreshTokenPath
+        });
     }
 }
