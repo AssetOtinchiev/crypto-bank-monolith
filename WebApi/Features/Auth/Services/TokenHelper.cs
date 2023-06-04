@@ -18,7 +18,7 @@ public class TokenHelper
         _jwtOptions = authOptions.Value.Jwt;
     }
 
-    public async Task<string> GenerateAccessToken(User user)
+    public string GenerateAccessToken(User user)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Convert.FromBase64String(_jwtOptions.Key);

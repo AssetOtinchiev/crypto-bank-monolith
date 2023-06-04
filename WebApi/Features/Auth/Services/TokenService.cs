@@ -37,7 +37,7 @@ public class TokenService
 
         var activeRefreshToken = refreshTokens.FirstOrDefault(x => !x.IsRevoked);
 
-        var accessToken = await _tokenHelper.GenerateAccessToken(user);
+        var accessToken = _tokenHelper.GenerateAccessToken(user);
         var refreshToken = await _tokenHelper.GenerateRefreshToken();
 
         var salt = _passwordHelper.GetSecureSalt();
