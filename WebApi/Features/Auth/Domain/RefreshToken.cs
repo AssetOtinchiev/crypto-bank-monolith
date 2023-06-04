@@ -13,5 +13,5 @@ public class RefreshToken
     public string DeviceName { get; set; }
     public Guid? ReplacedBy { get; set; }
 
-    public virtual User User { get; set; }
+    public User User { get; set; }
 }
