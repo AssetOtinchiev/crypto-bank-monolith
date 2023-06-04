@@ -53,7 +53,7 @@ public class TokenHelper
     {
         var secureRandomBytes = new byte[32];
         using var randomNumberGenerator = RandomNumberGenerator.Create();
-        await System.Threading.Tasks.Task.Run(() => randomNumberGenerator.GetBytes(secureRandomBytes));
+        randomNumberGenerator.GetBytes(secureRandomBytes);
         var refreshToken = Convert.ToBase64String(secureRandomBytes);
         return refreshToken;
     }
