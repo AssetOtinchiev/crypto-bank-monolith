@@ -51,11 +51,7 @@ public class TokenHelper
     }
     public async Task<string> GenerateRefreshToken()
     {
-        var secureRandomBytes = new byte[32];
-        using var randomNumberGenerator = RandomNumberGenerator.Create();
-        randomNumberGenerator.GetBytes(secureRandomBytes);
-        var refreshToken = Convert.ToBase64String(secureRandomBytes);
-        return refreshToken;
+        return Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
     }
     
     public ClaimsPrincipal GetPrincipalFromToken(string token)
