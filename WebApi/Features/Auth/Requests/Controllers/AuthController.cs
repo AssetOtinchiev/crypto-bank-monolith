@@ -12,7 +12,7 @@ public class AuthController : Controller
 {
     private readonly IMediator _mediator;
     private readonly AuthOptions _authOptions;
-    private const string RefreshTokenPath = "/auth/refreshToken";
+    private const string RefreshTokenPath = "/auth/newTokens";
 
     public AuthController(IMediator mediator, IOptions<AuthOptions> authOptions)
     {
@@ -23,7 +23,7 @@ public class AuthController : Controller
     [HttpPost]
     public async Task<AccessTokenModel> Authenticate(Authenticate.Request request, CancellationToken cancellationToken)
     {
-        request.UserAgent = GetUserAgentFromHeader();;
+        request.DeviceName = GetUserAgentFromHeader();;
         var result = await _mediator.Send(request, cancellationToken);
         AddRefreshTokenCookies(result.RefreshToken);
         
@@ -34,12 +34,13 @@ public class AuthController : Controller
     }
 
     [HttpGet("newTokens")]
-    public async Task<AccessTokenModel> GetNewTokensPair([FromBody] GetNewTokensPair.Request request,
-        CancellationToken cancellationToken)
+    public async Task<AccessTokenModel> GetNewTokensPair(CancellationToken cancellationToken)
     {
-        request.UserAgent = GetUserAgentFromHeader();
-        var refreshToken = Request.Cookies["refreshToken"];
-        request.RefreshToken = refreshToken;
+        var request = new GetNewTokensPair.Request
+        {
+            DeviceName = GetUserAgentFromHeader(),
+            RefreshToken = Request.Cookies["refreshToken"]
+        };
 
         var result = await _mediator.Send(request, cancellationToken);
         AddRefreshTokenCookies(result.RefreshToken);
@@ -59,7 +60,7 @@ public class AuthController : Controller
     {
         HttpContext.Response.Cookies.Append("refreshToken", refreshToken, new CookieOptions
         {
-            Expires = DateTime.Now.AddHours(_authOptions.RefreshTokenExpiration.Hours),
+            Expires = DateTime.Now.Add(_authOptions.RefreshTokenExpiration),
             Path = RefreshTokenPath
         });
     }

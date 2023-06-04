@@ -13,7 +13,7 @@ public static class Authenticate
 {
     public record Request(string Email, string Password) : IRequest<Response>
     {
-        public string? UserAgent { get; set; }
+        public string? DeviceName { get; set; }
     };
 
     public record Response(string AccessToken, string RefreshToken);
@@ -60,7 +60,7 @@ public static class Authenticate
                 throw new ValidationErrorsException($"{nameof(request.Email)}", "Invalid credentials","");
             }
             
-            var (accessToken, refreshToken) = await _tokenService.GenerateTokensAsync(user, request.UserAgent, cancellationToken);
+            var (accessToken, refreshToken) = await _tokenService.GenerateTokensAsync(user, request.DeviceName, cancellationToken);
             return new Response(accessToken, refreshToken);
         }
     }

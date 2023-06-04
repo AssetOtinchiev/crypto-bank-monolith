@@ -3,7 +3,6 @@ using WebApi.Database;
 using WebApi.Features.Auth.Domain;
 using WebApi.Features.Auth.Options;
 using WebApi.Features.Users.Domain;
-using WebApi.Shared;
 
 namespace WebApi.Features.Auth.Services;
 
@@ -11,14 +10,12 @@ public class TokenService
 {
     private readonly AppDbContext _dbContext;
     private readonly TokenHelper _tokenHelper;
-    private readonly PasswordHelper _passwordHelper;
     private readonly AuthOptions _authOptions;
 
-    public TokenService(AppDbContext dbContext, TokenHelper tokenHelper, PasswordHelper passwordHelper, IOptions<AuthOptions> authOptions)
+    public TokenService(AppDbContext dbContext, TokenHelper tokenHelper, IOptions<AuthOptions> authOptions)
     {
         _dbContext = dbContext;
         _tokenHelper = tokenHelper;
-        _passwordHelper = passwordHelper;
         _authOptions = authOptions.Value;
     }
 
@@ -39,32 +36,31 @@ public class TokenService
 
         var accessToken = _tokenHelper.GenerateAccessToken(user);
         var refreshToken = await _tokenHelper.GenerateRefreshToken();
-
-        var refreshTokenHex = _passwordHelper.GetHashUsingArgon2(refreshToken);
+        
         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
             var newRefreshToken = new RefreshToken
             {
-                ExpiryDate = DateTime.Now.AddHours(_authOptions.RefreshTokenExpiration.Hours).ToUniversalTime(),
+                ExpiryDate = DateTime.Now.Add(_authOptions.RefreshTokenExpiration).ToUniversalTime(),
                 CreatedAt = DateTime.Now.ToUniversalTime(),
                 UserId = user.Id,
-                Token = refreshTokenHex,
+                Token = refreshToken,
                 DeviceName = deviceName
             };
             user.RefreshTokens.Add(newRefreshToken);
             await _dbContext.SaveChangesAsync(cancellationToken);
-
+        
             if (activeRefreshToken != null)
             {
                 activeRefreshToken.IsRevoked = true;
                 activeRefreshToken.ReplacedBy = newRefreshToken.Id;
             }
-
+        
             _dbContext.RefreshTokens.RemoveRange(expiredTokens);
-
+        
             await _dbContext.SaveChangesAsync(cancellationToken);
-
+        
             await transaction.CommitAsync(cancellationToken);
         }
         catch (Exception)
@@ -73,13 +69,5 @@ public class TokenService
         }
 
         return (accessToken, refreshToken);
-    }
-    
-    public async Task<Guid> GetUserIdFromToken(string accessToken)
-    {
-        var claimsPrincipal = _tokenHelper.GetPrincipalFromToken(accessToken);
-
-        var userId = claimsPrincipal.Claims.First(x => x.Type == "userid").Value;
-        return Guid.Parse(userId);
     }
 }

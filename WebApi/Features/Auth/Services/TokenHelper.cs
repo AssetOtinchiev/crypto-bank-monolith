@@ -1,5 +1,4 @@
 using System.IdentityModel.Tokens.Jwt;
-using System.Security.Authentication;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using Microsoft.Extensions.Options;
@@ -53,42 +52,5 @@ public class TokenHelper
     public async Task<string> GenerateRefreshToken()
     {
         return Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
-    }
-    
-    public ClaimsPrincipal GetPrincipalFromToken(string token)
-    {
-        var tokenHandler = new JwtSecurityTokenHandler();
-
-        try
-        {
-            var tokenValidationParameters = new TokenValidationParameters()
-            {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateIssuerSigningKey = true,
-                ValidIssuer = _jwtOptions.Issuer,
-                ValidAudience = _jwtOptions.Audience,
-                ValidateLifetime = false,
-                IssuerSigningKey = new SymmetricSecurityKey(Convert.FromBase64String(_jwtOptions.Key)),
-            };
-            var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out var validatedToken);
-            if (!IsJwtWithValidSecurityAlgorithm(validatedToken))
-            {
-                throw new SecurityTokenException("Invalid token passed");
-            }
-
-            return principal;
-        }
-        catch
-        {
-            throw new AuthenticationException("One or more validation failures have occurred");
-        }
-    }
-    
-    private bool IsJwtWithValidSecurityAlgorithm(SecurityToken validatedToken)
-    {
-        return (validatedToken is JwtSecurityToken jwtSecurityToken) &&
-               jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256,
-                   StringComparison.InvariantCultureIgnoreCase);
     }
 }
