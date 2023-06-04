@@ -21,20 +21,6 @@ public class PasswordHelper
         return RandomNumberGenerator.GetBytes(32);
     }
 
-    public string GetHashUsingArgon2(string password, byte[] salt)
-    {
-        using var argon2 = new Argon2id(Encoding.UTF8.GetBytes(password));
-
-        argon2.Salt = salt;
-        argon2.DegreeOfParallelism = _argonSecurityOptions.DegreeOfParallelism; // four cores
-        argon2.Iterations = _argonSecurityOptions.Iterations;
-        argon2.MemorySize = _argonSecurityOptions.MemorySize; // 1 GB
-
-        var bytes = argon2.GetBytes(16);
-
-        return Convert.ToBase64String(bytes);
-    }
-
     public string HashUsingArgon2WithDbParam(string password, byte[] salt, int degreeOfParallelism, int iterations, int memorySize)
     {
         using var argon2 = new Argon2id(Encoding.UTF8.GetBytes(password));
