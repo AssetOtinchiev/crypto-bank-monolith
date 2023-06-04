@@ -72,12 +72,7 @@ namespace WebApi.Migrations
                     b.Property<Guid?>("ReplacedBy")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("TokenHash")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<string>("TokenSalt")
+                    b.Property<string>("Token")
                         .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");

@@ -51,8 +51,7 @@ public class TokenService
                 ExpiryDate = DateTime.Now.AddDays(_jwtSetting.ExpirationRefreshToken).ToUniversalTime(),
                 CreatedAt = DateTime.Now.ToUniversalTime(),
                 UserId = user.Id,
-                TokenHash = refreshTokenHex,
-                TokenSalt = Convert.ToBase64String(salt),
+                Token = refreshTokenHex,
                 DeviceName = deviceName
             };
             user.RefreshTokens?.Add(newRefreshToken);

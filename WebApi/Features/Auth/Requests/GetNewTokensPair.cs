@@ -60,7 +60,7 @@ public class GetNewTokensPair
                 throw new ValidationErrorsException($"{nameof(request.RefreshToken)}", "Invalid token","");
             }
             
-            var refreshTokenParams = _passwordHelper.GetSettingsFromHexArgon2(activeRefreshToken.TokenHash);
+            var refreshTokenParams = _passwordHelper.GetSettingsFromHexArgon2(activeRefreshToken.Token);
             var refreshTokenHashed = _passwordHelper.HashUsingArgon2WithDbParam(request.RefreshToken, Convert.FromBase64String(refreshTokenParams.Salt), 
                 refreshTokenParams.DegreeOfParallelism, refreshTokenParams.Iterations, refreshTokenParams.MemorySize);
             
