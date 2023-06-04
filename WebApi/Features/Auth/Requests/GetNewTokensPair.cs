@@ -20,9 +20,8 @@ public class GetNewTokensPair
 
     public class RequestValidator : AbstractValidator<Request>
     {
-        public RequestValidator(AppDbContext dbContext)
+        public RequestValidator()
         {
-            ClassLevelCascadeMode = CascadeMode.Stop;
             RuleFor(x => x.AccessToken)
                 .NotEmpty()
                 .WithMessage("Empty token");
