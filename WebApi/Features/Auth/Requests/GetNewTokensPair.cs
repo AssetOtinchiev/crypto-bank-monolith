@@ -50,8 +50,8 @@ public class GetNewTokensPair
             var userId = await _tokenService.GetUserIdFromToken(request.AccessToken);
             var user = await _dbContext.Users
                 .Include(x=> x.RefreshTokens
-                    .Where(refreshToken => refreshToken.UserId == userId && refreshToken.DeviceName == request.UserAgent)
-                    .OrderByDescending(refreshToken=> refreshToken.CreatedAt))
+                    .Where(rt => rt.UserId == userId && rt.DeviceName == request.UserAgent)
+                    .OrderByDescending(rTkn=> rTkn.CreatedAt))
                 .FirstAsync(x=> x.Id == userId, cancellationToken: cancellationToken);
 
             var activeRefreshToken = user.RefreshTokens.FirstOrDefault(x => !x.IsRevoked);
@@ -75,8 +75,8 @@ public class GetNewTokensPair
                 throw new ValidationErrorsException($"{nameof(request.RefreshToken)}", "Invalid token","");
             }
 
-            var token = await _tokenService.GenerateTokensAsync(user, request.UserAgent, cancellationToken);
-            return new Response(token.accessToken, token.refreshToken);
+            var (accessToken, refreshToken) = await _tokenService.GenerateTokensAsync(user, request.UserAgent, cancellationToken);
+            return new Response(accessToken, refreshToken);
         }
     }
 }
