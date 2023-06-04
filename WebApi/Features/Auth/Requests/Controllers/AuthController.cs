@@ -34,8 +34,8 @@ public class AuthController : Controller
     }
 
 
-    [HttpPost("refreshToken")]
-    public async Task<string> GetNewRefreshToken([FromBody]GetNewRefreshToken.Request request,CancellationToken cancellationToken)
+    [HttpGet("newTokens")]
+    public async Task<string> GetNewTokensPair([FromBody]GetNewTokensPair.Request request,CancellationToken cancellationToken)
     {
         request.UserAgent = Request.Headers["User-Agent"].ToString();
         

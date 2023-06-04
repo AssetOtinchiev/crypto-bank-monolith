@@ -9,7 +9,7 @@ using WebApi.Shared;
 
 namespace WebApi.Features.Auth.Requests;
 
-public class GetNewRefreshToken
+public class GetNewTokensPair
 {
     public record Request(string AccessToken) : IRequest<Response>
     {
@@ -54,7 +54,7 @@ public class GetNewRefreshToken
                 .Include(x=> x.RefreshTokens
                     .Where(refreshToken => refreshToken.UserId == userId && refreshToken.DeviceName == request.UserAgent)
                     .OrderByDescending(refreshToken=> refreshToken.CreatedAt))
-                .FirstAsync(x=> x.Id == userId, cancellationToken);
+                .FirstAsync(x=> x.Id == userId, cancellationToken: cancellationToken);
 
             var activeRefreshToken = user.RefreshTokens.FirstOrDefault(x => !x.IsRevorked);
             if (activeRefreshToken == null)
