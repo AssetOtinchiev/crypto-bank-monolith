@@ -66,7 +66,7 @@ namespace WebApi.Migrations
                     b.Property<DateTime>("ExpiryDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<bool>("IsRevorked")
+                    b.Property<bool>("IsRevoked")
                         .HasColumnType("boolean");
 
                     b.Property<Guid?>("ReplacedBy")

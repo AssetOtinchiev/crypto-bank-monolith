@@ -35,7 +35,7 @@ public class TokenService
         var expiredTokens = refreshTokens
             .Where(x => x.ExpiryDate <= DateTime.Now.ToUniversalTime()).ToArray();
 
-        var activeRefreshToken = refreshTokens.FirstOrDefault(x => !x.IsRevorked);
+        var activeRefreshToken = refreshTokens.FirstOrDefault(x => !x.IsRevoked);
 
         var accessToken = await _tokenHelper.GenerateAccessToken(user);
         var refreshToken = await _tokenHelper.GenerateRefreshToken();
@@ -60,7 +60,7 @@ public class TokenService
 
             if (activeRefreshToken != null)
             {
-                activeRefreshToken.IsRevorked = true;
+                activeRefreshToken.IsRevoked = true;
                 activeRefreshToken.ReplacedBy = newRefreshToken.Id;
             }
 

@@ -12,7 +12,7 @@ using WebApi.Database;
 namespace WebApi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20230601110714_Init")]
+    [Migration("20230604072606_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -69,7 +69,7 @@ namespace WebApi.Migrations
                     b.Property<DateTime>("ExpiryDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<bool>("IsRevorked")
+                    b.Property<bool>("IsRevoked")
                         .HasColumnType("boolean");
 
                     b.Property<Guid?>("ReplacedBy")

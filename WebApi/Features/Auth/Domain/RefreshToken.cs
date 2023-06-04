@@ -10,7 +10,7 @@ public class RefreshToken
     public string TokenHash { get; set; }
     public string TokenSalt { get; set; }
     public DateTime ExpiryDate { get; set; }
-    public bool IsRevorked { get; set; }
+    public bool IsRevoked { get; set; }
     public string DeviceName { get; set; }
     public  Guid? ReplacedBy { get; set; }
     

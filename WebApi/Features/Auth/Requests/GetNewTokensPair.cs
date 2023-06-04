@@ -55,7 +55,7 @@ public class GetNewTokensPair
                     .OrderByDescending(refreshToken=> refreshToken.CreatedAt))
                 .FirstAsync(x=> x.Id == userId, cancellationToken: cancellationToken);
 
-            var activeRefreshToken = user.RefreshTokens.FirstOrDefault(x => !x.IsRevorked);
+            var activeRefreshToken = user.RefreshTokens.FirstOrDefault(x => !x.IsRevoked);
             if (activeRefreshToken == null)
             {
                 throw new ValidationErrorsException($"{nameof(request.RefreshToken)}", "Invalid token","");
@@ -69,7 +69,7 @@ public class GetNewTokensPair
             {
                 foreach (var refreshTokenOnRevorke in user.RefreshTokens)
                 {
-                    refreshTokenOnRevorke.IsRevorked = true;
+                    refreshTokenOnRevorke.IsRevoked = true;
                 }
 
                 await _dbContext.SaveChangesAsync(cancellationToken);

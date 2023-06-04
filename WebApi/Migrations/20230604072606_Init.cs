@@ -58,7 +58,7 @@ namespace WebApi.Migrations
                     TokenHash = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
                     TokenSalt = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
                     ExpiryDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    IsRevorked = table.Column<bool>(type: "boolean", nullable: false),
+                    IsRevoked = table.Column<bool>(type: "boolean", nullable: false),
                     DeviceName = table.Column<string>(type: "text", nullable: false),
                     ReplacedBy = table.Column<Guid>(type: "uuid", nullable: true)
                 },
