@@ -54,11 +54,8 @@ public static class Authenticate
                 throw new ValidationErrorsException($"{nameof(request.Email)}", "Invalid credentials","");
             }
 
-            var passwordParam = _passwordHelper.GetSettingsFromHexArgon2(user.Password);
-            var passwordHash =
-                _passwordHelper.HashUsingArgon2WithDbParam(request.Password, Convert.FromBase64String(passwordParam.Salt),
-                    passwordParam.DegreeOfParallelism, passwordParam.Iterations, passwordParam.MemorySize);
-            if (passwordParam.Hash != passwordHash)
+            var verifyPassword = _passwordHelper.VerifyPassword(request.Password, user.Password);
+            if (!verifyPassword)
             {
                 throw new ValidationErrorsException($"{nameof(request.Email)}", "Invalid credentials","");
             }

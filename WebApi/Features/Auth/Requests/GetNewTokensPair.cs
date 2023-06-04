@@ -60,20 +60,20 @@ public class GetNewTokensPair
                 throw new ValidationErrorsException($"{nameof(request.RefreshToken)}", "Invalid token","");
             }
             
-            var refreshTokenParams = _passwordHelper.GetSettingsFromHexArgon2(activeRefreshToken.Token);
-            var refreshTokenHashed = _passwordHelper.HashUsingArgon2WithDbParam(request.RefreshToken, Convert.FromBase64String(refreshTokenParams.Salt), 
-                refreshTokenParams.DegreeOfParallelism, refreshTokenParams.Iterations, refreshTokenParams.MemorySize);
+            // var refreshTokenParams = _passwordHelper.GetSettingsFromHexArgon2(activeRefreshToken.Token);
+            // var refreshTokenHashed = _passwordHelper.HashUsingArgon2WithDbParam(request.RefreshToken, Convert.FromBase64String(refreshTokenParams.Salt), 
+            //     refreshTokenParams.DegreeOfParallelism, refreshTokenParams.Iterations, refreshTokenParams.MemorySize);
             
-            if (refreshTokenParams.Hash != refreshTokenHashed)
-            {
-                foreach (var refreshTokensToRevoke in user.RefreshTokens)
-                {
-                    refreshTokensToRevoke.IsRevoked = true;
-                }
-
-                await _dbContext.SaveChangesAsync(cancellationToken);
-                throw new ValidationErrorsException($"{nameof(request.RefreshToken)}", "Invalid token","");
-            }
+            // if (refreshTokenParams.Hash != refreshTokenHashed)
+            // {
+            //     foreach (var refreshTokensToRevoke in user.RefreshTokens)
+            //     {
+            //         refreshTokensToRevoke.IsRevoked = true;
+            //     }
+            //
+            //     await _dbContext.SaveChangesAsync(cancellationToken);
+            //     throw new ValidationErrorsException($"{nameof(request.RefreshToken)}", "Invalid token","");
+            // }
 
             var (accessToken, refreshToken) = await _tokenService.GenerateTokensAsync(user, request.UserAgent, cancellationToken);
             return new Response(accessToken, refreshToken);
