@@ -16,26 +16,12 @@ public class PasswordHelper
         _argonSecurityOptions = argonSecurityOptions.Value;
     }
 
-    public byte[] GetSecureSalt()
+    private byte[] GetSecureSalt()
     {
         return RandomNumberGenerator.GetBytes(32);
     }
 
-    public string HashUsingArgon2(string password, byte[] salt)
-    {
-        using var argon2 = new Argon2id(Encoding.UTF8.GetBytes(password));
-
-        argon2.Salt = salt;
-        argon2.DegreeOfParallelism = _argonSecurityOptions.DegreeOfParallelism; // four cores
-        argon2.Iterations = _argonSecurityOptions.Iterations;
-        argon2.MemorySize = _argonSecurityOptions.MemorySize; // 1 GB
-
-        var bytes = argon2.GetBytes(16);
-
-        return Convert.ToBase64String(bytes);
-    }
-
-    public string HashUsingArgon2WithDbParam(string password, byte[] salt, int degreeOfParallelism, int iterations, int memorySize)
+    private string HashUsingArgon2WithDbParam(string password, byte[] salt, int degreeOfParallelism, int iterations, int memorySize)
     {
         using var argon2 = new Argon2id(Encoding.UTF8.GetBytes(password));
 
@@ -49,8 +35,19 @@ public class PasswordHelper
         return Convert.ToBase64String(bytes);
     }
 
-    public string GetHexUsingArgon2T(string password, byte[] salt)
+    public bool VerifyPassword(string password, string passwordHash)
     {
+        var passwordHex = GetSettingsFromHexArgon2(passwordHash);
+        
+        var hash = HashUsingArgon2WithDbParam(password, Convert.FromBase64String(passwordHex.Salt),
+            passwordHex.DegreeOfParallelism, passwordHex.Iterations, passwordHex.MemorySize);
+
+        return passwordHex.Hash == hash;
+    }
+
+    public string GetHashUsingArgon2(string password)
+    {
+        var salt = GetSecureSalt();
         using var argon2 = new Argon2id(Encoding.UTF8.GetBytes(password));
 
         argon2.Salt = salt;
@@ -65,7 +62,7 @@ public class PasswordHelper
             $"$argon2id$m={argon2.MemorySize},t={argon2.Iterations},p={argon2.DegreeOfParallelism}${Convert.ToBase64String(argon2.Salt)}${hash}";
     }
     
-    public SettingsFromHexArgon GetSettingsFromHexArgon2(string hex)
+    private SettingsFromHexArgon GetSettingsFromHexArgon2(string hex)
     {
         var splittedHex = hex.Split("$");
 

@@ -79,11 +79,7 @@ public class AppDbContext : DbContext
         {
             refreshToken.HasKey(x => x.Id);
             
-            refreshToken.Property(e => e.TokenHash)
-                .IsRequired()
-                .HasMaxLength(1000);
-
-            refreshToken.Property(e => e.TokenSalt)
+            refreshToken.Property(e => e.Token)
                 .IsRequired()
                 .HasMaxLength(1000);
             

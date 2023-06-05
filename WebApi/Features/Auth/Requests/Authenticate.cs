@@ -3,7 +3,6 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Database;
 using WebApi.Errors.Exceptions;
-using WebApi.Features.Auth.Models;
 using WebApi.Features.Auth.Services;
 using WebApi.Shared;
 using WebApi.Validations;
@@ -12,13 +11,16 @@ namespace WebApi.Features.Auth.Requests;
 
 public static class Authenticate
 {
-    public record Request(string Email , string Password) : IRequest<Response>;
+    public record Request(string Email, string Password) : IRequest<Response>
+    {
+        public string? DeviceName { get; set; }
+    };
 
-    public record Response(AccessTokenModel UserModel);
+    public record Response(string AccessToken, string RefreshToken);
 
     public class RequestValidator : AbstractValidator<Request>
     {
-        public RequestValidator(AppDbContext dbContext)
+        public RequestValidator()
         {
             ClassLevelCascadeMode = CascadeMode.Stop;
             RuleFor(x => x.Email).ValidEmail();
@@ -44,6 +46,7 @@ public static class Authenticate
         {
             var user = _dbContext.Users
                 .Include(x=> x.Roles)
+                .Include(x=> x.RefreshTokens)
                 .SingleOrDefault(user => user.Email == request.Email);
 
             if (user == null)
@@ -51,24 +54,14 @@ public static class Authenticate
                 throw new ValidationErrorsException($"{nameof(request.Email)}", "Invalid credentials","");
             }
 
-            var passwordParam = _passwordHelper.GetSettingsFromHexArgon2(user.Password);
-            var passwordHash =
-                _passwordHelper.HashUsingArgon2WithDbParam(request.Password, Convert.FromBase64String(passwordParam.Salt),
-                    passwordParam.DegreeOfParallelism, passwordParam.Iterations, passwordParam.MemorySize);
-            if (passwordParam.Hash != passwordHash)
+            var verifyPassword = _passwordHelper.VerifyPassword(request.Password, user.Password);
+            if (!verifyPassword)
             {
-                
                 throw new ValidationErrorsException($"{nameof(request.Email)}", "Invalid credentials","");
             }
             
-            var token = await _tokenService.GenerateTokensAsync(user, cancellationToken);
-
-            var refreshTokenModel = new AccessTokenModel
-            {
-                AccessToken = token.Item1
-            };
-
-            return new Response(refreshTokenModel);
+            var (accessToken, refreshToken) = await _tokenService.GenerateTokensAsync(user, request.DeviceName, cancellationToken);
+            return new Response(accessToken, refreshToken);
         }
     }
 }

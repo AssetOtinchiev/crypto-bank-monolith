@@ -36,8 +36,6 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options => options.CustomSchemaIds(s => s.FullName.Replace("+", ".")));
 builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
 
-
-// todo Features
 builder.AddUsers();
 builder.AddAuth();
 builder.AddAccounts();

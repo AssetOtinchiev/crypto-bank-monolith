@@ -10,17 +10,17 @@ namespace WebApi.Features.Auth.Services;
 
 public class TokenHelper
 {
-    private readonly JWTSetting _jwtSetting;
+    private readonly JwtOptions _jwtOptions;
 
-    public TokenHelper(IOptions<JWTSetting> jwtSetting)
+    public TokenHelper(IOptions<AuthOptions> authOptions)
     {
-        _jwtSetting = jwtSetting.Value;
+        _jwtOptions = authOptions.Value.Jwt;
     }
 
-    public async Task<string> GenerateAccessToken(User user)
+    public string GenerateAccessToken(User user)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Convert.FromBase64String(_jwtSetting.Key);
+        var key = Convert.FromBase64String(_jwtOptions.Key);
 
         var roleClaims = new List<Claim>();
 
@@ -40,20 +40,17 @@ public class TokenHelper
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = claimsIdentity,
-            Issuer = _jwtSetting.Issuer,
-            Audience = _jwtSetting.Audience,
-            Expires = DateTime.Now.AddMinutes(_jwtSetting.Duration.Minutes),
+            Issuer = _jwtOptions.Issuer,
+            Audience = _jwtOptions.Audience,
+            Expires = DateTime.Now.AddMinutes(_jwtOptions.Duration.Minutes),
             SigningCredentials = signingCredentials,
         };
         var securityToken = tokenHandler.CreateToken(tokenDescriptor);
         return tokenHandler.WriteToken(securityToken);
     }
-    public static async Task<string> GenerateRefreshToken()
+    
+    public async Task<string> GenerateRefreshToken()
     {
-        var secureRandomBytes = new byte[32];
-        using var randomNumberGenerator = RandomNumberGenerator.Create();
-        await System.Threading.Tasks.Task.Run(() => randomNumberGenerator.GetBytes(secureRandomBytes));
-        var refreshToken = Convert.ToBase64String(secureRandomBytes);
-        return refreshToken;
+        return Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
     }
 }

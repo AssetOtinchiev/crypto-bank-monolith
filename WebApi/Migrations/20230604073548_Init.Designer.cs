@@ -12,7 +12,7 @@ using WebApi.Database;
 namespace WebApi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20230530182030_Init")]
+    [Migration("20230604073548_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -62,15 +62,20 @@ namespace WebApi.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("DeviceName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("ExpiryDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("TokenHash")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
+                    b.Property<bool>("IsRevoked")
+                        .HasColumnType("boolean");
 
-                    b.Property<string>("TokenSalt")
+                    b.Property<Guid?>("ReplacedBy")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Token")
                         .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");

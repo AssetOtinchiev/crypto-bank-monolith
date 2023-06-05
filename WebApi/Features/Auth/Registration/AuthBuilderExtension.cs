@@ -11,11 +11,11 @@ public static class AuthBuilderExtension
     public static WebApplicationBuilder AddAuth(this WebApplicationBuilder builder)
     {
         builder.Services.Configure<ArgonSecurityOptions>(builder.Configuration.GetSection(ArgonSecurityOptions.ArgonSecuritySectionName));
-        builder.Services.Configure<JWTSetting>(builder.Configuration.GetSection(JWTSetting.JWTSectionName));
+        builder.Services.Configure<AuthOptions>(builder.Configuration.GetSection("Features:Auth"));
 
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
         {
-            var jwtSetting = builder.Configuration.GetSection(JWTSetting.JWTSectionName).Get<JWTSetting>();
+            var jwtSetting = builder.Configuration.GetSection("Features:Auth:Jwt").Get<JwtOptions>();
             options.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuer = true,

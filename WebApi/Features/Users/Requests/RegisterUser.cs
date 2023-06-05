@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -8,7 +7,6 @@ using WebApi.Features.Users.Domain;
 using WebApi.Features.Users.Models;
 using WebApi.Features.Users.Options;
 using WebApi.Shared;
-using WebApi.Validations;
 
 namespace WebApi.Features.Users.Requests;
 
@@ -65,8 +63,7 @@ public static class RegisterUser
 
         public async Task<Response> Handle(Request request, CancellationToken cancellationToken)
         {
-            var salt = _passwordHelper.GetSecureSalt();
-            var passwordHex = _passwordHelper.GetHexUsingArgon2T(request.Password, salt);
+            var passwordHex = _passwordHelper.GetHashUsingArgon2(request.Password);
             var role = RoleType.User;
             var isExistAdmin = await _dbContext.Roles.AnyAsync(x => x.Name == RoleType.Administrator, cancellationToken);
             if (!isExistAdmin && request.Email == _usersOptions.AdministratorEmail)
