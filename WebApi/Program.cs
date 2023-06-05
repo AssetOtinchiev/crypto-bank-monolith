@@ -63,47 +63,6 @@ app.MapControllers();
 
 app.Run();
 
-// void RegisterUserAPIs()
-// {
-//     app.MapPost("/register", async (CancellationToken token, IValidator<CreateUserDto> validator, CreateUserDto userDto, IUserService userService) =>
-//     {
-//         var validationResult = await validator.ValidateAsync(userDto);
-//         if (!validationResult.IsValid) {
-//             return Results.ValidationProblem(validationResult.ToDictionary());
-//         }
-//         
-//         var createdUserResult = await userService.Register(userDto, token);
-//
-//         if (createdUserResult.IsT1)
-//         {
-//             return Results.BadRequest(createdUserResult.AsT1.GetErrorsString());
-//         }
-//         return Results.Ok(createdUserResult.AsT0);
-//     });
-//     
-//     app.MapPost("/login", async (CancellationToken token, IValidator<CreateUserDto> validator, CreateUserDto userDto, IUserService userService) =>
-//     {
-//         var validationResult = await validator.ValidateAsync(userDto);
-//         if (!validationResult.IsValid) {
-//             return Results.ValidationProblem(validationResult.ToDictionary());
-//         }
-//         
-//         var createdUserResult = await userService.LoginAsync(userDto, token);
-//
-//         if (createdUserResult.IsT1)
-//         {
-//             return Results.BadRequest(createdUserResult.AsT1.GetErrorsString());
-//         }
-//         return Results.Ok(createdUserResult.AsT0);
-//     });
-//     
-//     app.MapGet("/check", [Authorize]async (CancellationToken token) =>
-//     {
-//         return Results.Ok("createdUserResult.AsT0");
-//     });
-//
-// }
-
 void RunMigration(WebApplication webApplication)
 {
     using (var scope = webApplication.Services.CreateScope())
