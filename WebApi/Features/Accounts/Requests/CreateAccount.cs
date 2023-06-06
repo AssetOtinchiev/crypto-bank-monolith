@@ -7,6 +7,8 @@ using WebApi.Features.Accounts.Domain;
 using WebApi.Features.Accounts.Models;
 using WebApi.Features.Accounts.Options;
 
+using static WebApi.Features.Accounts.Errors.Codes.AccountsValidationErrors;
+
 namespace WebApi.Features.Accounts.Requests;
 
 public class CreateAccount
@@ -21,11 +23,14 @@ public class CreateAccount
         {
             ClassLevelCascadeMode = CascadeMode.Stop;
             RuleFor(x => x.Amount)
-                .GreaterThan(0);
+                .GreaterThan(0)
+                .WithErrorCode(AccountsAmountLow);
 
             RuleFor(x => x.Currency)
                 .NotEmpty()
-                .MinimumLength(3);
+                .WithErrorCode(AccountsCurrencyRequired)
+                .MinimumLength(3)
+                .WithErrorCode(AccountsCurrencyMinLength);
 
             RuleFor(x => x.UserId)
                 .NotEmpty()
@@ -34,7 +39,7 @@ public class CreateAccount
                     var userExists = await dbContext.Users.AnyAsync(user => user.Id == x, token);
 
                     return userExists;
-                }).WithMessage("User not exists in database");
+                }).WithErrorCode(AccountsUserNotExist);
 
 
             RuleFor(x => x.UserId)
@@ -50,7 +55,7 @@ public class CreateAccount
                     }
 
                     return true;
-                }).WithMessage("Account limit exceeded");
+                }).WithErrorCode(AccountsLimitExceeded);
         }
     }
 

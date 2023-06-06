@@ -5,6 +5,8 @@ using WebApi.Database;
 using WebApi.Errors.Exceptions;
 using WebApi.Features.Auth.Services;
 
+using static WebApi.Features.Auth.Errors.Codes.AuthValidationErrors;
+
 namespace WebApi.Features.Auth.Requests;
 
 public class GetNewTokensPair
@@ -23,7 +25,7 @@ public class GetNewTokensPair
         {
             RuleFor(x => x.RefreshToken)
                 .NotEmpty()
-                .WithMessage("Empty token");
+                .WithErrorCode(AuthTokenRequired);
         }
     }
 
@@ -47,7 +49,7 @@ public class GetNewTokensPair
 
             if (refreshToken == null)
             {
-                throw new ValidationErrorsException($"{nameof(request.RefreshToken)}", "Invalid token", "");
+                throw new ValidationErrorsException($"{nameof(request.RefreshToken)}", "Invalid token", AuthTokenInvalid);
             }
 
             if (refreshToken.IsRevoked || refreshToken.ExpiryDate <= DateTime.Now.ToUniversalTime())
@@ -65,7 +67,7 @@ public class GetNewTokensPair
                     await _dbContext.SaveChangesAsync(cancellationToken);
                 }
 
-                throw new ValidationErrorsException($"{nameof(request.RefreshToken)}", "Invalid token", "");
+                throw new ValidationErrorsException($"{nameof(request.RefreshToken)}", "Invalid token", AuthTokenInvalid);
             }
 
             var (accessToken, generatedRefreshToken) =

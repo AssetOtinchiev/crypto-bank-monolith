@@ -5,6 +5,8 @@ using WebApi.Database;
 using WebApi.Features.Users.Domain;
 using WebApi.Features.Users.Models;
 
+using static WebApi.Features.Users.Errors.Codes.UserValidationErrors;
+
 namespace WebApi.Features.Users.Requests;
 
 public class EditUserRoles
@@ -26,11 +28,13 @@ public class EditUserRoles
                     var userExists = await dbContext.Users.AnyAsync(user => user.Id == x, token);
 
                     return userExists;
-                }).WithMessage("User not exists in database");
+                }).WithErrorCode(UserNotExist);
 
             RuleFor(x => x.Roles)
                 .NotNull()
-                .NotEmpty();
+                .WithErrorCode(UserRoleRequired)
+                .NotEmpty()
+                .WithErrorCode(UserRoleRequired);
         }
     }
 

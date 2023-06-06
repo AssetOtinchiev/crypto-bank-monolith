@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using WebApi.Database;
 using WebApi.Features.Accounts.Models;
 
+using static WebApi.Features.Accounts.Errors.Codes.AccountsValidationErrors;
+    
 namespace WebApi.Features.Accounts.Requests;
 
 public class GetAccounts
@@ -24,7 +26,7 @@ public class GetAccounts
                     var userExists = await dbContext.Users.AnyAsync(user => user.Id == x, token);
 
                     return userExists;
-                }).WithMessage("User not exists in database");
+                }).WithErrorCode(AccountsUserNotExist);
         }
     }
 

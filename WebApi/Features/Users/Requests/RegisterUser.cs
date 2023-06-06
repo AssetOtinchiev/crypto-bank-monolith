@@ -36,17 +36,17 @@ public static class RegisterUser
             RuleFor(x => x.Email)
                 .Cascade(CascadeMode.Stop)
                 .NotEmpty()
-                .WithMessage("Email is empty")
+                .WithErrorCode(UserEmailRequired)
                 .MinimumLength(4)
-                .WithMessage("Email too short")
+                .WithErrorCode(UserEmailShort)
                 .EmailAddress()
-                .WithMessage("Email format is wrong")
+                .WithErrorCode(UserEmailInvalidFormat)
                 .MustAsync(async (x, token) =>
                 {
                     var userExists = await dbContext.Users.AnyAsync(user => user.Email == x, token);
 
                     return !userExists;
-                }).WithMessage("Email exists or incorrect email");
+                }).WithErrorCode(UserEmailExistOrInvalid);
         }
     }
 
