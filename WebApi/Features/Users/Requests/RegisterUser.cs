@@ -8,6 +8,8 @@ using WebApi.Features.Users.Models;
 using WebApi.Features.Users.Options;
 using WebApi.Shared;
 
+using static WebApi.Features.Users.Errors.Codes.UserValidationErrors;
+
 namespace WebApi.Features.Users.Requests;
 
 public static class RegisterUser
@@ -23,13 +25,13 @@ public static class RegisterUser
             RuleFor(x => x.Password)
                 .Cascade(CascadeMode.Stop)
                 .NotEmpty()
-                .WithMessage("Password is empty")
+                .WithErrorCode(UserPasswordRequired)
                 .MinimumLength(7)
-                .WithMessage("Password too short");
+                .WithErrorCode(UserPasswordShort);
             
             RuleFor(x => x.DateOfBirth)
                 .NotEmpty()
-                .WithMessage("Date is empty");
+                .WithErrorCode(UserDateBirthRequired);
 
             RuleFor(x => x.Email)
                 .Cascade(CascadeMode.Stop)

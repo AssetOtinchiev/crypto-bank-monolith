@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using Prometheus;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using WebApi.Database;
+using WebApi.Errors.Extensions;
 using WebApi.Features.Accounts.Registration;
 using WebApi.Features.Auth.Registration;
 using WebApi.Features.Users.Registration;
@@ -55,6 +56,7 @@ if (app.Environment.IsDevelopment())
 
 app.MapMetrics();
 app.UseHttpsRedirection();
+app.MapProblemDetails();
 
 app.UseAuthentication();
 app.UseAuthorization();
