@@ -1,8 +1,11 @@
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
+using WebApi.Database;
 
 namespace WebApi.Validations;
 
 using static WebApi.Features.Auth.Errors.Codes.AuthValidationErrors;
+using static WebApi.Errors.Codes.GeneralValidationErrors;
 
 public static class RuleBuilderOptionsExtensions
 {
@@ -24,5 +27,16 @@ public static class RuleBuilderOptionsExtensions
             .WithErrorCode(InvalidCredential)
             .MinimumLength(7)
             .WithErrorCode(InvalidCredential);
+    }
+
+
+    public static IRuleBuilderOptions<T, Guid> UserExist<T>(this IRuleBuilder<T, Guid> builder, AppDbContext dbContext)
+    {
+        return builder.NotEmpty().MustAsync(async (x, token) =>
+        {
+            var userExists = await dbContext.Users.AnyAsync(user => user.Id == x, token);
+
+            return userExists;
+        }).WithErrorCode(UserNotExist);
     }
 }

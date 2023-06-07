@@ -3,9 +3,8 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Database;
 using WebApi.Features.Accounts.Models;
+using WebApi.Validations;
 
-using static WebApi.Errors.Codes.GeneralValidationErrors;
-    
 namespace WebApi.Features.Accounts.Requests;
 
 public class GetAccounts
@@ -20,13 +19,7 @@ public class GetAccounts
         {
             ClassLevelCascadeMode = CascadeMode.Stop;
             RuleFor(x => x.UserId)
-                .NotEmpty()
-                .MustAsync(async (x, token) =>
-                {
-                    var userExists = await dbContext.Users.AnyAsync(user => user.Id == x, token);
-
-                    return userExists;
-                }).WithErrorCode(UserNotExist);
+                .UserExist(dbContext);
         }
     }
 

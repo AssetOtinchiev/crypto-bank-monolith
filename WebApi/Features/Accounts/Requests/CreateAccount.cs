@@ -7,10 +7,9 @@ using WebApi.Errors.Exceptions;
 using WebApi.Features.Accounts.Domain;
 using WebApi.Features.Accounts.Models;
 using WebApi.Features.Accounts.Options;
-
+using WebApi.Validations;
 using static WebApi.Features.Accounts.Errors.Codes.AccountValidationErrors;
 using static WebApi.Features.Accounts.Errors.Codes.AccountLogicConflictErrors;
-using static WebApi.Errors.Codes.GeneralValidationErrors;
 
 namespace WebApi.Features.Accounts.Requests;
 
@@ -22,7 +21,7 @@ public class CreateAccount
 
     public class RequestValidator : AbstractValidator<Request>
     {
-        public RequestValidator(AppDbContext dbContext, IOptions<AccountsOptions> accountsOptions)
+        public RequestValidator(AppDbContext dbContext)
         {
             ClassLevelCascadeMode = CascadeMode.Stop;
             RuleFor(x => x.Amount)
@@ -37,12 +36,7 @@ public class CreateAccount
 
             RuleFor(x => x.UserId)
                 .NotEmpty()
-                .MustAsync(async (x, token) =>
-                {
-                    var userExists = await dbContext.Users.AnyAsync(user => user.Id == x, token);
-
-                    return userExists;
-                }).WithErrorCode(UserNotExist);
+                .UserExist(dbContext);
         }
     }
 
