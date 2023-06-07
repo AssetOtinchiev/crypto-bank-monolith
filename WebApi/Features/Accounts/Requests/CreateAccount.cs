@@ -30,7 +30,7 @@ public class CreateAccount
                 .NotEmpty()
                 .WithErrorCode(CurrencyRequired)
                 .MinimumLength(3)
-                .WithErrorCode(CurrencyMinLength);
+                .WithErrorCode(CurrencyTooShort);
 
             RuleFor(x => x.UserId)
                 .NotEmpty()
