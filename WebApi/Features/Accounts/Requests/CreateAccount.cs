@@ -24,13 +24,13 @@ public class CreateAccount
             ClassLevelCascadeMode = CascadeMode.Stop;
             RuleFor(x => x.Amount)
                 .GreaterThan(0)
-                .WithErrorCode(AccountsAmountLow);
+                .WithErrorCode(AmountLow);
 
             RuleFor(x => x.Currency)
                 .NotEmpty()
-                .WithErrorCode(AccountsCurrencyRequired)
+                .WithErrorCode(CurrencyRequired)
                 .MinimumLength(3)
-                .WithErrorCode(AccountsCurrencyMinLength);
+                .WithErrorCode(CurrencyMinLength);
 
             RuleFor(x => x.UserId)
                 .NotEmpty()
@@ -39,7 +39,7 @@ public class CreateAccount
                     var userExists = await dbContext.Users.AnyAsync(user => user.Id == x, token);
 
                     return userExists;
-                }).WithErrorCode(AccountsUserNotExist);
+                }).WithErrorCode(UserNotExist);
 
 
             RuleFor(x => x.UserId)
@@ -55,7 +55,7 @@ public class CreateAccount
                     }
 
                     return true;
-                }).WithErrorCode(AccountsLimitExceeded);
+                }).WithErrorCode(LimitExceeded);
         }
     }
 

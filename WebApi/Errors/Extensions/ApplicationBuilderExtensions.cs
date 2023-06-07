@@ -126,11 +126,6 @@ public static class ApplicationBuilderExtensions
     }
 }
 
-internal record ErrorData(
-    [property: JsonPropertyName("field")] string Field,
-    [property: JsonPropertyName("message")]
-    string Message);
-
 internal record ErrorDataWithCode(
     [property: JsonPropertyName("field")] string Field,
     [property: JsonPropertyName("message")]

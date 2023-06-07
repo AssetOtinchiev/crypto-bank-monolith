@@ -26,7 +26,7 @@ public class GetUserProfile
                     var userExists = await dbContext.Users.AnyAsync(user => user.Id == x, token);
 
                     return userExists;
-                }).WithErrorCode(UserNotExist);
+                }).WithErrorCode(NotExist);
         }
     }
 

@@ -26,7 +26,7 @@ public class GetUserRoles
                     var userExists = await dbContext.Users.AnyAsync(user => user.Id == x, token);
             
                     return userExists;
-                }).WithErrorCode(UserNotExist);
+                }).WithErrorCode(NotExist);
         }
     }
 

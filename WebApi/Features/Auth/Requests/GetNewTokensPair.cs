@@ -25,7 +25,7 @@ public class GetNewTokensPair
         {
             RuleFor(x => x.RefreshToken)
                 .NotEmpty()
-                .WithErrorCode(AuthTokenRequired);
+                .WithErrorCode(TokenRequired);
         }
     }
 
@@ -49,7 +49,7 @@ public class GetNewTokensPair
 
             if (refreshToken == null)
             {
-                throw new ValidationErrorsException($"{nameof(request.RefreshToken)}", "Invalid token", AuthTokenInvalid);
+                throw new ValidationErrorsException($"{nameof(request.RefreshToken)}", "Invalid token", TokenInvalid);
             }
 
             if (refreshToken.IsRevoked || refreshToken.ExpiryDate <= DateTime.Now.ToUniversalTime())
@@ -67,7 +67,7 @@ public class GetNewTokensPair
                     await _dbContext.SaveChangesAsync(cancellationToken);
                 }
 
-                throw new ValidationErrorsException($"{nameof(request.RefreshToken)}", "Invalid token", AuthTokenInvalid);
+                throw new ValidationErrorsException($"{nameof(request.RefreshToken)}", "Invalid token", TokenInvalid);
             }
 
             var (accessToken, generatedRefreshToken) =

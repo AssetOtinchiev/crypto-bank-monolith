@@ -21,11 +21,11 @@ public class GetAccountOpenedByPeriod
             ClassLevelCascadeMode = CascadeMode.Stop;
             RuleFor(x => x.StartDate)
                 .NotEmpty()
-                .WithErrorCode(AccountsStartDateRequired);
+                .WithErrorCode(StartDateRequired);
 
             RuleFor(x => x.EndDate)
                 .NotEmpty()
-                .WithErrorCode(AccountsEndDateRequired);
+                .WithErrorCode(EndDateRequired);
 
             RuleFor(x => x)
                 .Must(x =>
@@ -35,7 +35,7 @@ public class GetAccountOpenedByPeriod
                         return false;
                     }
                     return true;
-                }).WithErrorCode(AccountsStartDateMoreEndDate);
+                }).WithErrorCode(StartDateMoreEndDate);
         }
     }
 

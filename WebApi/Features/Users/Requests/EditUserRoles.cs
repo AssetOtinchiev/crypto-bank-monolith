@@ -28,13 +28,13 @@ public class EditUserRoles
                     var userExists = await dbContext.Users.AnyAsync(user => user.Id == x, token);
 
                     return userExists;
-                }).WithErrorCode(UserNotExist);
+                }).WithErrorCode(NotExist);
 
             RuleFor(x => x.Roles)
                 .NotNull()
-                .WithErrorCode(UserRoleRequired)
+                .WithErrorCode(RoleRequired)
                 .NotEmpty()
-                .WithErrorCode(UserRoleRequired);
+                .WithErrorCode(RoleRequired);
         }
     }
 

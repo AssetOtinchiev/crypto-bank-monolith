@@ -10,19 +10,19 @@ public static class RuleBuilderOptionsExtensions
     {
         return builder
             .NotEmpty()
-            .WithErrorCode(AuthInvalidCredential)
+            .WithErrorCode(InvalidCredential)
             .MinimumLength(4)
-            .WithErrorCode(AuthInvalidCredential)
+            .WithErrorCode(InvalidCredential)
             .EmailAddress()
-            .WithErrorCode(AuthInvalidCredential);
+            .WithErrorCode(InvalidCredential);
     }
     
     public static IRuleBuilderOptions<T, string> ValidPassword<T>(this IRuleBuilder<T, string> builder)
     {
         return builder
             .NotEmpty()
-            .WithErrorCode(AuthInvalidCredential)
+            .WithErrorCode(InvalidCredential)
             .MinimumLength(7)
-            .WithErrorCode(AuthInvalidCredential);
+            .WithErrorCode(InvalidCredential);
     }
 }

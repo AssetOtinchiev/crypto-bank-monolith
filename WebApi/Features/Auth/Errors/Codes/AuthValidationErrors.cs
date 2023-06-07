@@ -4,7 +4,7 @@ public class AuthValidationErrors
 {
     private const string Prefix = "auth_validation_";
     
-    public const string AuthInvalidCredential = Prefix + "auth_invalid_credential";
-    public const string AuthTokenRequired = Prefix + "auth_token_required";
-    public const string AuthTokenInvalid = Prefix + "auth_token_invalid";
+    public const string InvalidCredential = Prefix + "invalid_credential";
+    public const string TokenRequired = Prefix + "token_required";
+    public const string TokenInvalid = Prefix + "token_invalid";
 }

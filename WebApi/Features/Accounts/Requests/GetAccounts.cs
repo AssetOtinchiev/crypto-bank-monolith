@@ -26,7 +26,7 @@ public class GetAccounts
                     var userExists = await dbContext.Users.AnyAsync(user => user.Id == x, token);
 
                     return userExists;
-                }).WithErrorCode(AccountsUserNotExist);
+                }).WithErrorCode(UserNotExist);
         }
     }
 
