@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using WebApi.Database;
 
@@ -22,6 +23,7 @@ public class TestingWebAppFactory<TEntryPoint> : WebApplicationFactory<Program> 
             services.AddDbContext<AppDbContext>(options =>
             {
                 options.UseInMemoryDatabase("InMemoryTest");
+                options.ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning));;
             });
 
             var sp = services.BuildServiceProvider();

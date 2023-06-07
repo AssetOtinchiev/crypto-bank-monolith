@@ -10,13 +10,13 @@ using WebApi.Shared;
 
 namespace WebApi.Integration.Tests.Features.Users;
 
-public class RegisterTests : IClassFixture<TestingWebAppFactory<Program>>, IAsyncLifetime
+public class RegisterUserTests : IClassFixture<TestingWebAppFactory<Program>>, IAsyncLifetime
 {
     private readonly TestingWebAppFactory<Program> _factory;
     private AppDbContext _db;
     private AsyncServiceScope _scope;
 
-    public RegisterTests(TestingWebAppFactory<Program> factory)
+    public RegisterUserTests(TestingWebAppFactory<Program> factory)
     {
         _factory = factory;
     }
@@ -42,8 +42,8 @@ public class RegisterTests : IClassFixture<TestingWebAppFactory<Program>>, IAsyn
         user!.RegisteredAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(10));
         user.DateOfBirth.Date.Should().Be(new DateTime(2000, 01, 31).Date);
 
-        var passwordHasher = _scope.ServiceProvider.GetRequiredService<PasswordHelper>();
-        passwordHasher.VerifyPassword("qwerty123456A!", user.Password).Should()
+        var passwordHelper = _scope.ServiceProvider.GetRequiredService<PasswordHelper>();
+        passwordHelper.VerifyPassword("qwerty123456A!", user.Password).Should()
             .BeTrue();
     }
 

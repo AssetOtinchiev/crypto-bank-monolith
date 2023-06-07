@@ -18,7 +18,6 @@ public class GetUserRoles
     {
         public RequestValidator(AppDbContext dbContext)
         {
-            ClassLevelCascadeMode = CascadeMode.Stop;
             RuleFor(x => x.UserId)
                 .NotEmpty()
                 .MustAsync(async (x, token) =>
