@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using WebApi.Database;
 using WebApi.Features.Users.Domain;
 using WebApi.Features.Users.Models;
+using WebApi.Validations;
+using static WebApi.Features.Users.Errors.Codes.UserValidationErrors;
 
 namespace WebApi.Features.Users.Requests;
 
@@ -20,17 +22,13 @@ public class EditUserRoles
             ClassLevelCascadeMode = CascadeMode.Stop;
 
             RuleFor(x => x.UserId)
-                .NotEmpty()
-                .MustAsync(async (x, token) =>
-                {
-                    var userExists = await dbContext.Users.AnyAsync(user => user.Id == x, token);
-
-                    return userExists;
-                }).WithMessage("User not exists in database");
+                .UserExist(dbContext);
 
             RuleFor(x => x.Roles)
                 .NotNull()
-                .NotEmpty();
+                .WithErrorCode(RoleRequired)
+                .NotEmpty()
+                .WithErrorCode(RoleRequired);
         }
     }
 

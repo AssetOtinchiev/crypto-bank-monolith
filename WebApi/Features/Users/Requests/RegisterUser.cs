@@ -8,6 +8,8 @@ using WebApi.Features.Users.Models;
 using WebApi.Features.Users.Options;
 using WebApi.Shared;
 
+using static WebApi.Features.Users.Errors.Codes.UserValidationErrors;
+
 namespace WebApi.Features.Users.Requests;
 
 public static class RegisterUser
@@ -23,28 +25,28 @@ public static class RegisterUser
             RuleFor(x => x.Password)
                 .Cascade(CascadeMode.Stop)
                 .NotEmpty()
-                .WithMessage("Password is empty")
+                .WithErrorCode(PasswordRequired)
                 .MinimumLength(7)
-                .WithMessage("Password too short");
+                .WithErrorCode(PasswordShort);
             
             RuleFor(x => x.DateOfBirth)
                 .NotEmpty()
-                .WithMessage("Date is empty");
+                .WithErrorCode(DateBirthRequired);
 
             RuleFor(x => x.Email)
                 .Cascade(CascadeMode.Stop)
                 .NotEmpty()
-                .WithMessage("Email is empty")
+                .WithErrorCode(EmailRequired)
                 .MinimumLength(4)
-                .WithMessage("Email too short")
+                .WithErrorCode(EmailShort)
                 .EmailAddress()
-                .WithMessage("Email format is wrong")
+                .WithErrorCode(EmailInvalidFormat)
                 .MustAsync(async (x, token) =>
                 {
                     var userExists = await dbContext.Users.AnyAsync(user => user.Email == x, token);
 
                     return !userExists;
-                }).WithMessage("Email exists or incorrect email");
+                }).WithErrorCode(EmailExistOrInvalid);
         }
     }
 

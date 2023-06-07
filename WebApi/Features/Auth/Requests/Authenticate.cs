@@ -7,6 +7,8 @@ using WebApi.Features.Auth.Services;
 using WebApi.Shared;
 using WebApi.Validations;
 
+using static WebApi.Features.Auth.Errors.Codes.AuthValidationErrors;
+
 namespace WebApi.Features.Auth.Requests;
 
 public static class Authenticate
@@ -51,13 +53,13 @@ public static class Authenticate
 
             if (user == null)
             {
-                throw new ValidationErrorsException($"{nameof(request.Email)}", "Invalid credentials","");
+                throw new ValidationErrorsException($"{nameof(request.Email)}", "Invalid credentials", InvalidCredential);
             }
 
             var verifyPassword = _passwordHelper.VerifyPassword(request.Password, user.Password);
             if (!verifyPassword)
             {
-                throw new ValidationErrorsException($"{nameof(request.Email)}", "Invalid credentials","");
+                throw new ValidationErrorsException($"{nameof(request.Email)}", "Invalid credentials",InvalidCredential);
             }
             
             var (accessToken, refreshToken) = await _tokenService.GenerateTokensAsync(user, request.DeviceName, cancellationToken);

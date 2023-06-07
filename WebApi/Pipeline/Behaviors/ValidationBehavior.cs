@@ -1,5 +1,6 @@
 using FluentValidation;
 using MediatR;
+using WebApi.Errors.Exceptions;
 
 namespace WebApi.Pipeline.Behaviors;
 
@@ -16,7 +17,13 @@ public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TReques
     {
         if (_validator is not null)
         {
-            await _validator.ValidateAndThrowAsync(request, cancellationToken);
+            var result = await _validator.ValidateAsync(request, cancellationToken);
+
+            if (!result.IsValid)
+            {
+                var errors = result.Errors.Select(x => new RequestValidationError(x.PropertyName, x.ErrorMessage, x.ErrorCode));
+                throw new ValidationErrorsException(errors);
+            }
         }
 
         return await next();

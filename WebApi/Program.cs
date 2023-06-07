@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using Prometheus;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using WebApi.Database;
+using WebApi.Errors.Extensions;
 using WebApi.Features.Accounts.Registration;
 using WebApi.Features.Auth.Registration;
 using WebApi.Features.Users.Registration;
@@ -14,6 +15,8 @@ using WebApi.Pipeline.Behaviors;
 using WebApi.Swagger;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddProblemDetails();
 
 // Add services to the container.
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -55,6 +58,7 @@ if (app.Environment.IsDevelopment())
 
 app.MapMetrics();
 app.UseHttpsRedirection();
+app.MapProblemDetails();
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -62,47 +66,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-
-// void RegisterUserAPIs()
-// {
-//     app.MapPost("/register", async (CancellationToken token, IValidator<CreateUserDto> validator, CreateUserDto userDto, IUserService userService) =>
-//     {
-//         var validationResult = await validator.ValidateAsync(userDto);
-//         if (!validationResult.IsValid) {
-//             return Results.ValidationProblem(validationResult.ToDictionary());
-//         }
-//         
-//         var createdUserResult = await userService.Register(userDto, token);
-//
-//         if (createdUserResult.IsT1)
-//         {
-//             return Results.BadRequest(createdUserResult.AsT1.GetErrorsString());
-//         }
-//         return Results.Ok(createdUserResult.AsT0);
-//     });
-//     
-//     app.MapPost("/login", async (CancellationToken token, IValidator<CreateUserDto> validator, CreateUserDto userDto, IUserService userService) =>
-//     {
-//         var validationResult = await validator.ValidateAsync(userDto);
-//         if (!validationResult.IsValid) {
-//             return Results.ValidationProblem(validationResult.ToDictionary());
-//         }
-//         
-//         var createdUserResult = await userService.LoginAsync(userDto, token);
-//
-//         if (createdUserResult.IsT1)
-//         {
-//             return Results.BadRequest(createdUserResult.AsT1.GetErrorsString());
-//         }
-//         return Results.Ok(createdUserResult.AsT0);
-//     });
-//     
-//     app.MapGet("/check", [Authorize]async (CancellationToken token) =>
-//     {
-//         return Results.Ok("createdUserResult.AsT0");
-//     });
-//
-// }
 
 void RunMigration(WebApplication webApplication)
 {

@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using WebApi.Database;
 using WebApi.Features.Accounts.Models;
+using WebApi.Validations;
 
 namespace WebApi.Features.Accounts.Requests;
 
@@ -18,13 +19,7 @@ public class GetAccounts
         {
             ClassLevelCascadeMode = CascadeMode.Stop;
             RuleFor(x => x.UserId)
-                .NotEmpty()
-                .MustAsync(async (x, token) =>
-                {
-                    var userExists = await dbContext.Users.AnyAsync(user => user.Id == x, token);
-
-                    return userExists;
-                }).WithMessage("User not exists in database");
+                .UserExist(dbContext);
         }
     }
 

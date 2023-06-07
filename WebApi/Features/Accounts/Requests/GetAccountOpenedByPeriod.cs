@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using WebApi.Database;
 using WebApi.Features.Accounts.Models;
 
+using static WebApi.Features.Accounts.Errors.Codes.AccountValidationErrors;
+
 namespace WebApi.Features.Accounts.Requests;
 
 public class GetAccountOpenedByPeriod
@@ -18,10 +20,12 @@ public class GetAccountOpenedByPeriod
         {
             ClassLevelCascadeMode = CascadeMode.Stop;
             RuleFor(x => x.StartDate)
-                .NotEmpty();
+                .NotEmpty()
+                .WithErrorCode(StartDateRequired);
 
             RuleFor(x => x.EndDate)
-                .NotEmpty();
+                .NotEmpty()
+                .WithErrorCode(EndDateRequired);
 
             RuleFor(x => x)
                 .Must(x =>
@@ -31,7 +35,7 @@ public class GetAccountOpenedByPeriod
                         return false;
                     }
                     return true;
-                }).WithMessage("StartDate is more thank endDate");
+                }).WithErrorCode(StartDateGreaterEndDate);
         }
     }
 
