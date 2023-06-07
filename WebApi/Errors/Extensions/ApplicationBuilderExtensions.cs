@@ -21,28 +21,6 @@ public static class ApplicationBuilderExtensions
 
                 switch (exception)
                 {
-                    case ValidationException validationException:
-                    {
-                        var validationProblemDetails = new ProblemDetails
-                        {
-                            Title = "Validation failed",
-                            Type = "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/400",
-                            Detail = validationException.Message,
-                            Status = StatusCodes.Status400BadRequest,
-                        };
-
-                        validationProblemDetails.Extensions.Add("traceId",
-                            Activity.Current?.Id ?? context.TraceIdentifier);
-
-                        validationProblemDetails.Extensions["errors"] = validationException.Errors
-                            .Select(x => new ErrorDataWithCode(x.PropertyName, x.ErrorMessage, x.ErrorCode));
-
-                        context.Response.ContentType = "application/problem+json";
-                        context.Response.StatusCode = StatusCodes.Status400BadRequest;
-
-                        await context.Response.WriteAsync(JsonSerializer.Serialize(validationProblemDetails));
-                        break;
-                    }
                     case ValidationErrorsException validationErrorsException:
                     {
                         var validationProblemDetails = new ProblemDetails
