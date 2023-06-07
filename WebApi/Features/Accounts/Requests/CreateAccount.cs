@@ -10,6 +10,7 @@ using WebApi.Features.Accounts.Options;
 
 using static WebApi.Features.Accounts.Errors.Codes.AccountValidationErrors;
 using static WebApi.Features.Accounts.Errors.Codes.AccountLogicConflictErrors;
+using static WebApi.Errors.Codes.GeneralValidationErrors;
 
 namespace WebApi.Features.Accounts.Requests;
 

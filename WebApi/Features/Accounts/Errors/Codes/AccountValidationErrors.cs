@@ -7,7 +7,6 @@ public class AccountValidationErrors
     public const string AmountLow = Prefix + "amount_low";
     public const string CurrencyRequired = Prefix + "currency_required";
     public const string CurrencyTooShort = Prefix + "currency_too_short";
-    public const string UserNotExist = Prefix + "user_not_exist";
 
     public const string StartDateRequired = Prefix + "start_date_required";
     public const string EndDateRequired = Prefix + "end_date_required";
