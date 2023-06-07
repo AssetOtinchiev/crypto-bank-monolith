@@ -35,7 +35,7 @@ public class GetAccountOpenedByPeriod
                         return false;
                     }
                     return true;
-                }).WithErrorCode(StartDateMoreEndDate);
+                }).WithErrorCode(StartDateGreaterEndDate);
         }
     }
 

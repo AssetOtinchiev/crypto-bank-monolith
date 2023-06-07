@@ -12,5 +12,5 @@ public class AccountsValidationErrors
     
     public const string StartDateRequired = Prefix + "start_date_required";
     public const string EndDateRequired = Prefix + "end_date_required";
-    public const string StartDateMoreEndDate = Prefix + "start_date_more_end_date";
+    public const string StartDateGreaterEndDate = Prefix + "start_date_greater_end_date";
 }
