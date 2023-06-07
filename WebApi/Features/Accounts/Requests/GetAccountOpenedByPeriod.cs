@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using WebApi.Database;
 using WebApi.Features.Accounts.Models;
 
-using static WebApi.Features.Accounts.Errors.Codes.AccountsValidationErrors;
+using static WebApi.Features.Accounts.Errors.Codes.AccountValidationErrors;
 
 namespace WebApi.Features.Accounts.Requests;
 
