@@ -5,7 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using WebApi.Database;
 using WebApi.Features.Auth.Services;
-using WebApi.Features.Users.Domain;
 using WebApi.Features.Users.Models;
 using WebApi.Features.Users.Options;
 using WebApi.Features.Users.Requests;
@@ -13,20 +12,20 @@ using WebApi.Integration.Tests.Features.Users.MockData;
 
 namespace WebApi.Integration.Tests.Features.Users;
 
-public class GetUserRolesTests : IClassFixture<TestingWebAppFactory<Program>>, IAsyncLifetime
+public class GetUserProfileTests : IClassFixture<TestingWebAppFactory<Program>>, IAsyncLifetime
 {
     private readonly TestingWebAppFactory<Program> _factory;
     private AppDbContext _db;
     private AsyncServiceScope _scope;
     private UsersOptions _usersOptions = new();
 
-    public GetUserRolesTests(TestingWebAppFactory<Program> factory)
+    public GetUserProfileTests(TestingWebAppFactory<Program> factory)
     {
         _factory = factory;
     }
 
     [Fact]
-    public async Task Should_get_user_roles()
+    public async Task Should_get_user_profile()
     {
         // Arrange
         var client = _factory.CreateClient();
@@ -40,15 +39,11 @@ public class GetUserRolesTests : IClassFixture<TestingWebAppFactory<Program>>, I
         client.DefaultRequestHeaders.Add("Authorization", $"Bearer {tokens.accessToken}");
 
         // Act
-        var response = await client.GetFromJsonAsync<RoleModel[]>($"/users/roles?userId={createdUser.Id}");
+        var response = await client.GetFromJsonAsync<UserModel>($"/users");
 
         // Assert
         response.Should().NotBeNull();
-        response.Should().ContainEquivalentOf(new RoleModel()
-        {
-            Name = RoleType.Administrator,
-            UserId = createdUser.Id
-        });
+        response.Email.Should().MatchEquivalentOf(createdUser.Email);
     }
 
     public Task InitializeAsync()
@@ -69,19 +64,19 @@ public class GetUserRolesTests : IClassFixture<TestingWebAppFactory<Program>>, I
     }
 }
 
-public class GetUserRolesValidatorTests : IClassFixture<TestingWebAppFactory<Program>>, IAsyncLifetime
+public class GetUserProfileValidatorTests : IClassFixture<TestingWebAppFactory<Program>>, IAsyncLifetime
 {
     private readonly TestingWebAppFactory<Program> _factory;
     private AppDbContext _db;
     private AsyncServiceScope _scope;
-    private GetUserRoles.RequestValidator _validator;
+    private GetUserProfile.RequestValidator _validator;
     private UsersOptions _usersOptions = new();
 
-    public GetUserRolesValidatorTests(TestingWebAppFactory<Program> factory)
+    public GetUserProfileValidatorTests(TestingWebAppFactory<Program> factory)
     {
         _factory = factory;
     }
-
+    
     [Fact]
     public async Task Should_validate_correct_request()
     {
@@ -90,15 +85,15 @@ public class GetUserRolesValidatorTests : IClassFixture<TestingWebAppFactory<Pro
         await _db.SaveChangesAsync();
 
         var result = await _validator.TestValidateAsync(
-            new GetUserRoles.Request(createdUser.Id));
+            new GetUserProfile.Request(createdUser.Id));
         result.ShouldNotHaveAnyValidationErrors();
     }
-
+    
     [Theory, MemberData(nameof(Guids))]
     public async Task Should_validate_empty_user_request(Guid userId)
     {
         var result = await _validator.TestValidateAsync(
-            new GetUserRoles.Request(userId));
+            new GetUserProfile.Request(userId));
         result.ShouldHaveValidationErrorFor(x => x.UserId)
             .WithErrorCode("users_validation_not_exist");
     }
@@ -117,7 +112,7 @@ public class GetUserRolesValidatorTests : IClassFixture<TestingWebAppFactory<Pro
     {
         _scope = _factory.Services.CreateAsyncScope();
         _db = _scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        _validator = new GetUserRoles.RequestValidator(_db);
+        _validator = new GetUserProfile.RequestValidator(_db);
         _usersOptions = _scope.ServiceProvider.GetRequiredService<IOptions<UsersOptions>>().Value;
 
         return Task.CompletedTask;
