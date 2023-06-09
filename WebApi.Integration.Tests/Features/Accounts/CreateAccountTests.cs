@@ -36,6 +36,8 @@ public class CreateAccountTests : IClassFixture<TestingWebAppFactory<Program>>, 
         var tokens = await tokenService.GenerateTokensAsync(createdUser, "test", new CancellationToken());
         client.DefaultRequestHeaders.Add("Authorization", $"Bearer {tokens.accessToken}");
         var amount = 100;
+        
+        // Act
         (await client.PostAsJsonAsync("/accounts", new
         {
             UserId = createdUser.Id,
@@ -43,6 +45,7 @@ public class CreateAccountTests : IClassFixture<TestingWebAppFactory<Program>>, 
             Amount = 100,
         })).EnsureSuccessStatusCode();
 
+        // Assert
         var accounts = await _db.Accounts
             .Where(x => x.UserId == createdUser.Id)
             .ToArrayAsync();
