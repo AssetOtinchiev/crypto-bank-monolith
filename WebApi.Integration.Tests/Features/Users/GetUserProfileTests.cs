@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using WebApi.Database;
 using WebApi.Features.Auth.Services;
+using WebApi.Features.Users.Domain;
 using WebApi.Features.Users.Models;
 using WebApi.Features.Users.Options;
 using WebApi.Features.Users.Requests;
@@ -30,13 +31,9 @@ public class GetUserProfileTests : IClassFixture<TestingWebAppFactory<Program>>,
         // Arrange
         var client = _factory.CreateClient();
 
-        var createdUser = CreateUserMock.CreateAdminUser(_usersOptions.AdministratorEmail);
+        var createdUser = CreateUserMock.CreateUser(_usersOptions.AdministratorEmail, RoleType.Administrator);
         _db.Users.Add(createdUser);
         await _db.SaveChangesAsync();
-
-        var tokenService = _scope.ServiceProvider.GetRequiredService<TokenService>();
-        var tokens = await tokenService.GenerateTokensAsync(createdUser, "test", new CancellationToken());
-        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {tokens.accessToken}");
 
         // Act
         var response = await client.GetFromJsonAsync<UserModel>($"/users");
@@ -76,11 +73,11 @@ public class GetUserProfileValidatorTests : IClassFixture<TestingWebAppFactory<P
     {
         _factory = factory;
     }
-    
+
     [Fact]
     public async Task Should_validate_correct_request()
     {
-        var createdUser = CreateUserMock.CreateAdminUser(_usersOptions.AdministratorEmail);
+        var createdUser = CreateUserMock.CreateUser(_usersOptions.AdministratorEmail, RoleType.Administrator);
         _db.Users.Add(createdUser);
         await _db.SaveChangesAsync();
 
@@ -88,24 +85,14 @@ public class GetUserProfileValidatorTests : IClassFixture<TestingWebAppFactory<P
             new GetUserProfile.Request(createdUser.Id));
         result.ShouldNotHaveAnyValidationErrors();
     }
-    
-    [Theory, MemberData(nameof(Guids))]
+
+    [Theory, MemberData(nameof(RandomGuidMock.Guids), MemberType = typeof(RandomGuidMock))]
     public async Task Should_validate_empty_user_request(Guid userId)
     {
         var result = await _validator.TestValidateAsync(
             new GetUserProfile.Request(userId));
         result.ShouldHaveValidationErrorFor(x => x.UserId)
             .WithErrorCode("users_validation_not_exist");
-    }
-
-    public static IEnumerable<object[]> Guids
-    {
-        get
-        {
-            yield return new object[] {Guid.Parse("b3548ecf-8f31-4b4a-a120-1536fea7b3a7")};
-            yield return new object[] {Guid.Parse("7dd27c42-87fb-4d9c-a06f-38cd0fc7de0a")};
-            yield return new object[] {Guid.Empty};
-        }
     }
 
     public Task InitializeAsync()

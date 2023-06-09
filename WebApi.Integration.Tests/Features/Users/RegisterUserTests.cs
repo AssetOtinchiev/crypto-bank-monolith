@@ -75,7 +75,6 @@ public class RegisterValidatorTests : IClassFixture<TestingWebAppFactory<Program
         _factory = factory;
     }
 
-
     [Fact]
     public async Task Should_validate_correct_request()
     {

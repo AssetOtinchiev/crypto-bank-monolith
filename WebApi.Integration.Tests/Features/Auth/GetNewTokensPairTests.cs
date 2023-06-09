@@ -6,13 +6,13 @@ using WebApi.Features.Auth.Models;
 
 namespace WebApi.Integration.Tests.Features.Auth;
 
-public class GetNewTokensPair : IClassFixture<TestingWebAppFactory<Program>>, IAsyncLifetime
+public class GetNewTokensPairTests : IClassFixture<TestingWebAppFactory<Program>>, IAsyncLifetime
 {
     private readonly TestingWebAppFactory<Program> _factory;
     private AppDbContext _db;
     private AsyncServiceScope _scope;
 
-    public GetNewTokensPair(TestingWebAppFactory<Program> factory)
+    public GetNewTokensPairTests(TestingWebAppFactory<Program> factory)
     {
         _factory = factory;
     }

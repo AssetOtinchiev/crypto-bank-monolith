@@ -9,6 +9,7 @@ public class User
     {
         RefreshTokens = new HashSet<RefreshToken>();
         Roles = new HashSet<Role>();
+        Accounts = new List<Account>();
     }
     
     public Guid Id { get; set; }
@@ -21,5 +22,5 @@ public class User
     public ICollection<RefreshToken> RefreshTokens { get; set; }
     public ICollection<Role> Roles { get; set; }
     
-    public ICollection<Account> Accounts { get; set; }
+    public List<Account> Accounts { get; set; }
 }

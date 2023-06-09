@@ -23,18 +23,19 @@ public class CreateAccount
     {
         public RequestValidator(AppDbContext dbContext)
         {
-            ClassLevelCascadeMode = CascadeMode.Stop;
             RuleFor(x => x.Amount)
                 .GreaterThan(0)
                 .WithErrorCode(AmountLow);
 
             RuleFor(x => x.Currency)
+                .Cascade(CascadeMode.Stop)
                 .NotEmpty()
                 .WithErrorCode(CurrencyRequired)
                 .MinimumLength(3)
                 .WithErrorCode(CurrencyTooShort);
 
             RuleFor(x => x.UserId)
+                .Cascade(CascadeMode.Stop)
                 .NotEmpty()
                 .UserExist(dbContext);
         }

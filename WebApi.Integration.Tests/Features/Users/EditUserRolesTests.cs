@@ -31,7 +31,7 @@ public class EditUserRolesTests : IClassFixture<TestingWebAppFactory<Program>>, 
         // Arrange
         var client = _factory.CreateClient();
 
-        var createdUser = CreateUserMock.CreateAdminUser(_usersOptions.AdministratorEmail);
+        var createdUser = CreateUserMock.CreateUser(_usersOptions.AdministratorEmail, RoleType.Administrator);
         _db.Users.Add(createdUser);
         await _db.SaveChangesAsync();
 
@@ -91,7 +91,7 @@ public class EditUserRolesValidatorTests : IClassFixture<TestingWebAppFactory<Pr
     [Fact]
     public async Task Should_validate_correct_request()
     {
-        var createdUser = CreateUserMock.CreateAdminUser(_usersOptions.AdministratorEmail);
+        var createdUser = CreateUserMock.CreateUser(_usersOptions.AdministratorEmail, RoleType.Administrator);
         _db.Users.Add(createdUser);
         await _db.SaveChangesAsync();
 
@@ -107,7 +107,7 @@ public class EditUserRolesValidatorTests : IClassFixture<TestingWebAppFactory<Pr
     [Fact]
     public async Task Should_require_roles()
     {
-        var createdUser = CreateUserMock.CreateAdminUser(_usersOptions.AdministratorEmail);
+        var createdUser = CreateUserMock.CreateUser(_usersOptions.AdministratorEmail, RoleType.Administrator);
         _db.Users.Add(createdUser);
         await _db.SaveChangesAsync();
 
