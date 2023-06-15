@@ -48,6 +48,7 @@ public class GetUserProfileTests : IClassFixture<TestingWebAppFactory<Program>>,
         // Assert
         response.Should().NotBeNull();
         response.Email.Should().MatchEquivalentOf(createdUser.Email);
+        response.DateOfBirth.Should().Be(new DateTime(2000, 01, 31).ToUniversalTime());
     }
     
     [Fact]
