@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
@@ -55,6 +56,19 @@ public class GetNewTokensPairTests : IClassFixture<TestingWebAppFactory<Program>
         accessTokenModel.AccessToken.Should().NotBeEmpty();
     }
 
+    [Fact]
+    public async Task Should_validate_tokens()
+    {
+        // Arrange
+        var client = _factory.CreateClient();
+       
+        // Act
+        var newTokenPairResponse = await client.GetAsync($"/auth/newTokens", cancellationToken: _cancellationToken);
+
+        // Assert
+        newTokenPairResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+    
     public Task InitializeAsync()
     {
         _scope = _factory.Services.CreateAsyncScope();

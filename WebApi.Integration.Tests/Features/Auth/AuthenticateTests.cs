@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
 using FluentValidation.TestHelper;
@@ -46,6 +47,54 @@ public class AuthenticateTests : IClassFixture<TestingWebAppFactory<Program>>, I
         var accessTokenModel = await response.Content.ReadFromJsonAsync<AccessTokenModel>(cancellationToken: _cancellationToken);
         accessTokenModel.Should().NotBeNull();
         accessTokenModel.AccessToken.Should().NotBeEmpty();
+    }
+    
+    [Fact]
+    public async Task Should_require_email()
+    {
+        // Arrange
+        var client = _factory.CreateClient();
+        (await client.PostAsJsonAsync("/users", new
+            {
+                Email = "test@test.com",
+                Password = "qwerty123456A!",
+                DateOfBirth = DateTime.UtcNow.AddYears(-20),
+            }, cancellationToken: _cancellationToken))
+            .EnsureSuccessStatusCode();
+
+        // Act
+        var response = await client.PostAsJsonAsync("/auth", new
+        {
+            Email = "invalidMail@test.com",
+            Password = "qwerty123456A!"
+        }, cancellationToken: _cancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+    
+    [Fact]
+    public async Task Should_require_password()
+    {
+        // Arrange
+        var client = _factory.CreateClient();
+        (await client.PostAsJsonAsync("/users", new
+            {
+                Email = "test@test.com",
+                Password = "qwerty123456A!",
+                DateOfBirth = DateTime.UtcNow.AddYears(-20),
+            }, cancellationToken: _cancellationToken))
+            .EnsureSuccessStatusCode();
+
+        // Act
+        var response = await client.PostAsJsonAsync("/auth", new
+        {
+            Email = "test@test.com",
+            Password = "easyPassword"
+        }, cancellationToken: _cancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     public Task InitializeAsync()

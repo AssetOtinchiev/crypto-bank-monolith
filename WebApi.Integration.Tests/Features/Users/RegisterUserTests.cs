@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
 using FluentValidation.TestHelper;
@@ -39,7 +40,8 @@ public class RegisterUserTests : IClassFixture<TestingWebAppFactory<Program>>, I
             .EnsureSuccessStatusCode();
 
         // Assert
-        var user = await _db.Users.SingleOrDefaultAsync(x => x.Email == "test@test.com", cancellationToken: _cancellationToken);
+        var user = await _db.Users.SingleOrDefaultAsync(x => x.Email == "test@test.com",
+            cancellationToken: _cancellationToken);
         user.Should().NotBeNull();
         user!.RegisteredAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(10));
         user.DateOfBirth.Date.Should().Be(dateBirth.Date);
@@ -47,6 +49,34 @@ public class RegisterUserTests : IClassFixture<TestingWebAppFactory<Program>>, I
         var passwordHelper = _scope.ServiceProvider.GetRequiredService<PasswordHelper>();
         passwordHelper.VerifyPassword("qwerty123456A!", user.Password).Should()
             .BeTrue();
+    }
+
+    [Fact]
+    public async Task Should_validate_duplicate_user()
+    {
+        // Arrange
+        var client = _factory.CreateClient();
+        var email = "test@test.com";
+        _db.Users.Add(new User()
+        {
+            Email = email,
+            Password = "123123",
+            RegisteredAt = DateTime.UtcNow,
+            DateOfBirth = DateTime.UtcNow
+        });
+        await _db.SaveChangesAsync(_cancellationToken);
+
+        var dateBirth = DateTime.UtcNow.AddYears(-20);
+        // Act
+        var result = await client.PostAsJsonAsync("/users", new
+        {
+            Email = email,
+            Password = "qwerty123456A!",
+            DateOfBirth = dateBirth,
+        }, cancellationToken: _cancellationToken);
+
+        // Assert
+        result.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     public Task InitializeAsync()
@@ -83,7 +113,8 @@ public class RegisterValidatorTests : IClassFixture<TestingWebAppFactory<Program
     public async Task Should_validate_correct_request()
     {
         var result = await _validator.TestValidateAsync(
-            new RegisterUser.Request("test@test.com", "password", new DateTime(2000, 01, 31).ToUniversalTime()), cancellationToken: _cancellationToken);
+            new RegisterUser.Request("test@test.com", "password", new DateTime(2000, 01, 31).ToUniversalTime()),
+            cancellationToken: _cancellationToken);
         result.ShouldNotHaveAnyValidationErrors();
     }
 
@@ -94,7 +125,8 @@ public class RegisterValidatorTests : IClassFixture<TestingWebAppFactory<Program
     public async Task Should_require_email(string email)
     {
         var result = await _validator.TestValidateAsync(
-            new RegisterUser.Request(email, "password", new DateTime(2000, 01, 31).ToUniversalTime()), cancellationToken: _cancellationToken);
+            new RegisterUser.Request(email, "password", new DateTime(2000, 01, 31).ToUniversalTime()),
+            cancellationToken: _cancellationToken);
         result.ShouldHaveValidationErrorFor(x => x.Email).WithErrorCode("users_validation_email_required");
     }
 
@@ -105,7 +137,8 @@ public class RegisterValidatorTests : IClassFixture<TestingWebAppFactory<Program
     public async Task Should_validate_email_format(string email)
     {
         var result = await _validator.TestValidateAsync(new
-            RegisterUser.Request(email, "password", new DateTime(2000, 01, 31).ToUniversalTime()), cancellationToken: _cancellationToken);
+                RegisterUser.Request(email, "password", new DateTime(2000, 01, 31).ToUniversalTime()),
+            cancellationToken: _cancellationToken);
         result.ShouldHaveValidationErrorFor(x => x.Email).WithErrorCode("users_validation_email_invalid_format");
     }
 
@@ -126,7 +159,8 @@ public class RegisterValidatorTests : IClassFixture<TestingWebAppFactory<Program
         await _db.SaveChangesAsync(_cancellationToken);
 
         var result = await _validator.TestValidateAsync(new
-            RegisterUser.Request(email, "password", new DateTime(2000, 01, 31).ToUniversalTime()), cancellationToken: _cancellationToken);
+                RegisterUser.Request(email, "password", new DateTime(2000, 01, 31).ToUniversalTime()),
+            cancellationToken: _cancellationToken);
         result.ShouldHaveValidationErrorFor(x => x.Email).WithErrorCode("users_validation_email_exist_or_invalid");
     }
 
@@ -137,7 +171,8 @@ public class RegisterValidatorTests : IClassFixture<TestingWebAppFactory<Program
     public async Task Should_require_password(string password)
     {
         var result = await _validator.TestValidateAsync(
-            new RegisterUser.Request("test@test.com", password, new DateTime(2000, 01, 31).ToUniversalTime()), cancellationToken: _cancellationToken);
+            new RegisterUser.Request("test@test.com", password, new DateTime(2000, 01, 31).ToUniversalTime()),
+            cancellationToken: _cancellationToken);
         result.ShouldHaveValidationErrorFor(x => x.Password).WithErrorCode("users_validation_password_required");
     }
 
@@ -148,7 +183,8 @@ public class RegisterValidatorTests : IClassFixture<TestingWebAppFactory<Program
     public async Task Should_validate_password_length(string password)
     {
         var result = await _validator.TestValidateAsync(
-            new RegisterUser.Request("test@test.com", password, new DateTime(2000, 01, 31).ToUniversalTime()), cancellationToken: _cancellationToken);
+            new RegisterUser.Request("test@test.com", password, new DateTime(2000, 01, 31).ToUniversalTime()),
+            cancellationToken: _cancellationToken);
         result.ShouldHaveValidationErrorFor(x => x.Password).WithErrorCode("users_validation_password_short");
     }
 
