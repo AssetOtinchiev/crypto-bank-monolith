@@ -10,6 +10,7 @@ using WebApi.Features.Users.Models;
 using WebApi.Features.Users.Options;
 using WebApi.Features.Users.Requests;
 using WebApi.Integration.Tests.Features.Users.MockData;
+using WebApi.Integration.Tests.Helpers;
 
 namespace WebApi.Integration.Tests.Features.Users;
 
@@ -19,6 +20,7 @@ public class GetUserRolesTests : IClassFixture<TestingWebAppFactory<Program>>, I
     private AppDbContext _db;
     private AsyncServiceScope _scope;
     private UsersOptions _usersOptions = new();
+    private CancellationToken _cancellationToken;
 
     public GetUserRolesTests(TestingWebAppFactory<Program> factory)
     {
@@ -33,14 +35,14 @@ public class GetUserRolesTests : IClassFixture<TestingWebAppFactory<Program>>, I
 
         var createdUser = CreateUserMock.CreateUser(_usersOptions.AdministratorEmail, RoleType.Administrator);
         _db.Users.Add(createdUser);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(_cancellationToken);
 
         var tokenService = _scope.ServiceProvider.GetRequiredService<TokenService>();
-        var tokens = await tokenService.GenerateTokensAsync(createdUser, "test", new CancellationToken());
+        var tokens = await tokenService.GenerateTokensAsync(createdUser, "test", _cancellationToken);
         client.DefaultRequestHeaders.Add("Authorization", $"Bearer {tokens.accessToken}");
 
         // Act
-        var response = await client.GetFromJsonAsync<RoleModel[]>($"/users/roles?userId={createdUser.Id}");
+        var response = await client.GetFromJsonAsync<RoleModel[]>($"/users/roles?userId={createdUser.Id}", cancellationToken: _cancellationToken);
 
         // Assert
         response.Should().NotBeNull();
@@ -55,7 +57,8 @@ public class GetUserRolesTests : IClassFixture<TestingWebAppFactory<Program>>, I
     {
         _scope = _factory.Services.CreateAsyncScope();
         _db = _scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
+        _cancellationToken = new CancellationTokenHelper().GetCancellationToken();
+        
         _usersOptions = _scope.ServiceProvider.GetRequiredService<IOptions<UsersOptions>>().Value;
         return Task.CompletedTask;
     }
@@ -64,7 +67,7 @@ public class GetUserRolesTests : IClassFixture<TestingWebAppFactory<Program>>, I
     {
         _db.RefreshTokens.RemoveRange(_db.RefreshTokens);
         _db.Users.RemoveRange(_db.Users);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(_cancellationToken);
         await _scope.DisposeAsync();
     }
 }
@@ -76,6 +79,7 @@ public class GetUserRolesValidatorTests : IClassFixture<TestingWebAppFactory<Pro
     private AsyncServiceScope _scope;
     private GetUserRoles.RequestValidator _validator;
     private UsersOptions _usersOptions = new();
+    private CancellationToken _cancellationToken;
 
     public GetUserRolesValidatorTests(TestingWebAppFactory<Program> factory)
     {
@@ -87,10 +91,10 @@ public class GetUserRolesValidatorTests : IClassFixture<TestingWebAppFactory<Pro
     {
         var createdUser = CreateUserMock.CreateUser(_usersOptions.AdministratorEmail, RoleType.Administrator);
         _db.Users.Add(createdUser);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(_cancellationToken);
 
         var result = await _validator.TestValidateAsync(
-            new GetUserRoles.Request(createdUser.Id));
+            new GetUserRoles.Request(createdUser.Id), cancellationToken: _cancellationToken);
         result.ShouldNotHaveAnyValidationErrors();
     }
 
@@ -98,7 +102,7 @@ public class GetUserRolesValidatorTests : IClassFixture<TestingWebAppFactory<Pro
     public async Task Should_validate_empty_user_request(Guid userId)
     {
         var result = await _validator.TestValidateAsync(
-            new GetUserRoles.Request(userId));
+            new GetUserRoles.Request(userId), cancellationToken: _cancellationToken);
         result.ShouldHaveValidationErrorFor(x => x.UserId)
             .WithErrorCode("users_validation_not_exist");
     }
@@ -109,7 +113,8 @@ public class GetUserRolesValidatorTests : IClassFixture<TestingWebAppFactory<Pro
         _db = _scope.ServiceProvider.GetRequiredService<AppDbContext>();
         _validator = new GetUserRoles.RequestValidator(_db);
         _usersOptions = _scope.ServiceProvider.GetRequiredService<IOptions<UsersOptions>>().Value;
-
+        _cancellationToken = new CancellationTokenHelper().GetCancellationToken();
+        
         return Task.CompletedTask;
     }
 
@@ -117,7 +122,7 @@ public class GetUserRolesValidatorTests : IClassFixture<TestingWebAppFactory<Pro
     {
         _db.RefreshTokens.RemoveRange(_db.RefreshTokens);
         _db.Users.RemoveRange(_db.Users);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(_cancellationToken);
         await _scope.DisposeAsync();
     }
 }

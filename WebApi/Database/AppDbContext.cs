@@ -89,7 +89,7 @@ public class AppDbContext : DbContext
             refreshToken.HasOne(d => d.User)
                 .WithMany(p => p.RefreshTokens)
                 .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
+                .OnDelete(DeleteBehavior.ClientCascade);
         });
     }
     
@@ -114,7 +114,7 @@ public class AppDbContext : DbContext
             account.HasOne(d => d.User)
                 .WithMany(p => p.Accounts)
                 .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
+                .OnDelete(DeleteBehavior.ClientCascade);
         });
     }
 }

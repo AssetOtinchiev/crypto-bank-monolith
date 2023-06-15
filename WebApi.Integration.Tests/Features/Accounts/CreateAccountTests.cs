@@ -8,6 +8,7 @@ using WebApi.Features.Accounts.Requests;
 using WebApi.Features.Auth.Services;
 using WebApi.Features.Users.Domain;
 using WebApi.Integration.Tests.Features.Users.MockData;
+using WebApi.Integration.Tests.Helpers;
 
 namespace WebApi.Integration.Tests.Features.Accounts;
 
@@ -16,6 +17,7 @@ public class CreateAccountTests : IClassFixture<TestingWebAppFactory<Program>>, 
     private readonly TestingWebAppFactory<Program> _factory;
     private AppDbContext _db;
     private AsyncServiceScope _scope;
+    private CancellationToken _cancellationToken;
 
     public CreateAccountTests(TestingWebAppFactory<Program> factory)
     {
@@ -30,10 +32,10 @@ public class CreateAccountTests : IClassFixture<TestingWebAppFactory<Program>>, 
 
         var createdUser = CreateUserMock.CreateUser("test@gmail.com", RoleType.User);
         _db.Users.Add(createdUser);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(_cancellationToken);
 
         var tokenService = _scope.ServiceProvider.GetRequiredService<TokenService>();
-        var tokens = await tokenService.GenerateTokensAsync(createdUser, "test", new CancellationToken());
+        var tokens = await tokenService.GenerateTokensAsync(createdUser, "test", _cancellationToken);
         client.DefaultRequestHeaders.Add("Authorization", $"Bearer {tokens.accessToken}");
         var amount = 100;
         
@@ -43,12 +45,12 @@ public class CreateAccountTests : IClassFixture<TestingWebAppFactory<Program>>, 
             UserId = createdUser.Id,
             Currency = "btc",
             Amount = 100,
-        })).EnsureSuccessStatusCode();
+        }, cancellationToken: _cancellationToken)).EnsureSuccessStatusCode();
 
         // Assert
         var accounts = await _db.Accounts
             .Where(x => x.UserId == createdUser.Id)
-            .ToArrayAsync();
+            .ToArrayAsync(cancellationToken: _cancellationToken);
 
         accounts.Should().NotBeNull();
         accounts.Should().HaveCountGreaterThanOrEqualTo(1);
@@ -59,7 +61,7 @@ public class CreateAccountTests : IClassFixture<TestingWebAppFactory<Program>>, 
     {
         _scope = _factory.Services.CreateAsyncScope();
         _db = _scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
+        _cancellationToken = new CancellationTokenHelper().GetCancellationToken();
         return Task.CompletedTask;
     }
 
@@ -67,9 +69,8 @@ public class CreateAccountTests : IClassFixture<TestingWebAppFactory<Program>>, 
     {
         _db.Accounts.RemoveRange(_db.Accounts);
         _db.RefreshTokens.RemoveRange(_db.RefreshTokens);
-        _db.Roles.RemoveRange(_db.Roles);
         _db.Users.RemoveRange(_db.Users);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(_cancellationToken);
         await _scope.DisposeAsync();
     }
 }
@@ -80,6 +81,7 @@ public class CreateAccountValidatorTests : IClassFixture<TestingWebAppFactory<Pr
     private AppDbContext _db;
     private AsyncServiceScope _scope;
     private CreateAccount.RequestValidator _validator;
+    private CancellationToken _cancellationToken;
 
     public CreateAccountValidatorTests(TestingWebAppFactory<Program> factory)
     {
@@ -101,9 +103,9 @@ public class CreateAccountValidatorTests : IClassFixture<TestingWebAppFactory<Pr
     {
         var createdUser = CreateUserMock.CreateUser("test@gmail.com", RoleType.User);
         _db.Users.Add(createdUser);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(_cancellationToken);
 
-        var result = await _validator.TestValidateAsync(new CreateAccount.Request(createdUser.Id, currency, 1));
+        var result = await _validator.TestValidateAsync(new CreateAccount.Request(createdUser.Id, currency, 1), cancellationToken: _cancellationToken);
         result.ShouldHaveValidationErrorFor(x => x.Currency)
             .WithErrorCode("accounts_validation_currency_required");
     }
@@ -115,9 +117,9 @@ public class CreateAccountValidatorTests : IClassFixture<TestingWebAppFactory<Pr
     {
         var createdUser = CreateUserMock.CreateUser("test@gmail.com", RoleType.User);
         _db.Users.Add(createdUser);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(_cancellationToken);
 
-        var result = await _validator.TestValidateAsync(new CreateAccount.Request(createdUser.Id, currency, 1));
+        var result = await _validator.TestValidateAsync(new CreateAccount.Request(createdUser.Id, currency, 1), cancellationToken: _cancellationToken);
         result.ShouldHaveValidationErrorFor(x => x.Currency)
             .WithErrorCode("accounts_validation_currency_too_short");
     }
@@ -129,9 +131,9 @@ public class CreateAccountValidatorTests : IClassFixture<TestingWebAppFactory<Pr
     {
         var createdUser = CreateUserMock.CreateUser("test@gmail.com", RoleType.User);
         _db.Users.Add(createdUser);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(_cancellationToken);
 
-        var result = await _validator.TestValidateAsync(new CreateAccount.Request(createdUser.Id, "btc", amount));
+        var result = await _validator.TestValidateAsync(new CreateAccount.Request(createdUser.Id, "btc", amount), cancellationToken: _cancellationToken);
         result.ShouldHaveValidationErrorFor(x => x.Amount)
             .WithErrorCode("accounts_validation_amount_low");
     }
@@ -141,7 +143,8 @@ public class CreateAccountValidatorTests : IClassFixture<TestingWebAppFactory<Pr
         _scope = _factory.Services.CreateAsyncScope();
         _db = _scope.ServiceProvider.GetRequiredService<AppDbContext>();
         _validator = new CreateAccount.RequestValidator(_db);
-
+        _cancellationToken = new CancellationTokenHelper().GetCancellationToken();
+        
         return Task.CompletedTask;
     }
 
@@ -149,9 +152,8 @@ public class CreateAccountValidatorTests : IClassFixture<TestingWebAppFactory<Pr
     {
         _db.Accounts.RemoveRange(_db.Accounts);
         _db.RefreshTokens.RemoveRange(_db.RefreshTokens);
-        _db.Roles.RemoveRange(_db.Roles);
         _db.Users.RemoveRange(_db.Users);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(_cancellationToken);
         await _scope.DisposeAsync();
     }
 }

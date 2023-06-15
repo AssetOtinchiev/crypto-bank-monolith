@@ -10,6 +10,7 @@ using WebApi.Features.Users.Models;
 using WebApi.Features.Users.Options;
 using WebApi.Features.Users.Requests;
 using WebApi.Integration.Tests.Features.Users.MockData;
+using WebApi.Integration.Tests.Helpers;
 
 namespace WebApi.Integration.Tests.Features.Users;
 
@@ -19,6 +20,7 @@ public class GetUserProfileTests : IClassFixture<TestingWebAppFactory<Program>>,
     private AppDbContext _db;
     private AsyncServiceScope _scope;
     private UsersOptions _usersOptions = new();
+    private CancellationToken _cancellationToken;
 
     public GetUserProfileTests(TestingWebAppFactory<Program> factory)
     {
@@ -33,10 +35,14 @@ public class GetUserProfileTests : IClassFixture<TestingWebAppFactory<Program>>,
 
         var createdUser = CreateUserMock.CreateUser(_usersOptions.AdministratorEmail, RoleType.Administrator);
         _db.Users.Add(createdUser);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(_cancellationToken);
+        
+        var tokenService = _scope.ServiceProvider.GetRequiredService<TokenService>();
+        var tokens = await tokenService.GenerateTokensAsync(createdUser, "test", _cancellationToken);
+        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {tokens.accessToken}");
 
         // Act
-        var response = await client.GetFromJsonAsync<UserModel>($"/users");
+        var response = await client.GetFromJsonAsync<UserModel>($"/users", cancellationToken: _cancellationToken);
 
         // Assert
         response.Should().NotBeNull();
@@ -47,7 +53,8 @@ public class GetUserProfileTests : IClassFixture<TestingWebAppFactory<Program>>,
     {
         _scope = _factory.Services.CreateAsyncScope();
         _db = _scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
+        _cancellationToken = new CancellationTokenHelper().GetCancellationToken();
+        
         _usersOptions = _scope.ServiceProvider.GetRequiredService<IOptions<UsersOptions>>().Value;
         return Task.CompletedTask;
     }
@@ -56,7 +63,7 @@ public class GetUserProfileTests : IClassFixture<TestingWebAppFactory<Program>>,
     {
         _db.RefreshTokens.RemoveRange(_db.RefreshTokens);
         _db.Users.RemoveRange(_db.Users);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(_cancellationToken);
         await _scope.DisposeAsync();
     }
 }
@@ -68,6 +75,7 @@ public class GetUserProfileValidatorTests : IClassFixture<TestingWebAppFactory<P
     private AsyncServiceScope _scope;
     private GetUserProfile.RequestValidator _validator;
     private UsersOptions _usersOptions = new();
+    private CancellationToken _cancellationToken;
 
     public GetUserProfileValidatorTests(TestingWebAppFactory<Program> factory)
     {
@@ -79,10 +87,10 @@ public class GetUserProfileValidatorTests : IClassFixture<TestingWebAppFactory<P
     {
         var createdUser = CreateUserMock.CreateUser(_usersOptions.AdministratorEmail, RoleType.Administrator);
         _db.Users.Add(createdUser);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(_cancellationToken);
 
         var result = await _validator.TestValidateAsync(
-            new GetUserProfile.Request(createdUser.Id));
+            new GetUserProfile.Request(createdUser.Id), cancellationToken: _cancellationToken);
         result.ShouldNotHaveAnyValidationErrors();
     }
 
@@ -90,7 +98,7 @@ public class GetUserProfileValidatorTests : IClassFixture<TestingWebAppFactory<P
     public async Task Should_validate_empty_user_request(Guid userId)
     {
         var result = await _validator.TestValidateAsync(
-            new GetUserProfile.Request(userId));
+            new GetUserProfile.Request(userId), cancellationToken: _cancellationToken);
         result.ShouldHaveValidationErrorFor(x => x.UserId)
             .WithErrorCode("users_validation_not_exist");
     }
@@ -101,7 +109,8 @@ public class GetUserProfileValidatorTests : IClassFixture<TestingWebAppFactory<P
         _db = _scope.ServiceProvider.GetRequiredService<AppDbContext>();
         _validator = new GetUserProfile.RequestValidator(_db);
         _usersOptions = _scope.ServiceProvider.GetRequiredService<IOptions<UsersOptions>>().Value;
-
+        _cancellationToken = new CancellationTokenHelper().GetCancellationToken();
+        
         return Task.CompletedTask;
     }
 
@@ -109,7 +118,7 @@ public class GetUserProfileValidatorTests : IClassFixture<TestingWebAppFactory<P
     {
         _db.RefreshTokens.RemoveRange(_db.RefreshTokens);
         _db.Users.RemoveRange(_db.Users);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(_cancellationToken);
         await _scope.DisposeAsync();
     }
 }

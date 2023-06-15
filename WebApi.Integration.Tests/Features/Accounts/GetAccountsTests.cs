@@ -9,6 +9,7 @@ using WebApi.Features.Accounts.Requests;
 using WebApi.Features.Auth.Services;
 using WebApi.Features.Users.Domain;
 using WebApi.Integration.Tests.Features.Users.MockData;
+using WebApi.Integration.Tests.Helpers;
 
 namespace WebApi.Integration.Tests.Features.Accounts;
 
@@ -17,6 +18,7 @@ public class GetAccountsTests : IClassFixture<TestingWebAppFactory<Program>>, IA
     private readonly TestingWebAppFactory<Program> _factory;
     private AppDbContext _db;
     private AsyncServiceScope _scope;
+    private CancellationToken _cancellationToken;
 
     public GetAccountsTests(TestingWebAppFactory<Program> factory)
     {
@@ -39,13 +41,13 @@ public class GetAccountsTests : IClassFixture<TestingWebAppFactory<Program>>, IA
         createdUser.Accounts.Add(account);
         _db.Users.Add(createdUser);
 
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(_cancellationToken);
         var tokenService = _scope.ServiceProvider.GetRequiredService<TokenService>();
-        var tokens = await tokenService.GenerateTokensAsync(createdUser, "test", new CancellationToken());
+        var tokens = await tokenService.GenerateTokensAsync(createdUser, "test", _cancellationToken);
         client.DefaultRequestHeaders.Add("Authorization", $"Bearer {tokens.accessToken}");
 
         // Act
-        var response = await client.GetFromJsonAsync<AccountModel[]>("/accounts");
+        var response = await client.GetFromJsonAsync<AccountModel[]>("/accounts", cancellationToken: _cancellationToken);
 
         // Assert
         response.Should().NotBeNull();
@@ -64,6 +66,7 @@ public class GetAccountsTests : IClassFixture<TestingWebAppFactory<Program>>, IA
         _scope = _factory.Services.CreateAsyncScope();
         _db = _scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
+        _cancellationToken = new CancellationTokenHelper().GetCancellationToken();
         return Task.CompletedTask;
     }
 
@@ -73,7 +76,7 @@ public class GetAccountsTests : IClassFixture<TestingWebAppFactory<Program>>, IA
         _db.RefreshTokens.RemoveRange(_db.RefreshTokens);
         _db.Roles.RemoveRange(_db.Roles);
         _db.Users.RemoveRange(_db.Users);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(_cancellationToken);
         await _scope.DisposeAsync();
     }
 }
@@ -84,6 +87,7 @@ public class GetAccountsValidatorTests : IClassFixture<TestingWebAppFactory<Prog
     private AppDbContext _db;
     private AsyncServiceScope _scope;
     private GetAccounts.RequestValidator _validator;
+    private CancellationToken _cancellationToken;
 
     public GetAccountsValidatorTests(TestingWebAppFactory<Program> factory)
     {
@@ -103,6 +107,8 @@ public class GetAccountsValidatorTests : IClassFixture<TestingWebAppFactory<Prog
         _scope = _factory.Services.CreateAsyncScope();
         _db = _scope.ServiceProvider.GetRequiredService<AppDbContext>();
         _validator = new GetAccounts.RequestValidator(_db);
+        _cancellationToken = new CancellationTokenHelper().GetCancellationToken();
+        
         return Task.CompletedTask;
     }
 

@@ -10,6 +10,7 @@ using WebApi.Features.Users.Domain;
 using WebApi.Features.Users.Options;
 using WebApi.Features.Users.Requests;
 using WebApi.Integration.Tests.Features.Users.MockData;
+using WebApi.Integration.Tests.Helpers;
 
 namespace WebApi.Integration.Tests.Features.Users;
 
@@ -19,6 +20,7 @@ public class EditUserRolesTests : IClassFixture<TestingWebAppFactory<Program>>, 
     private AppDbContext _db;
     private AsyncServiceScope _scope;
     private UsersOptions _usersOptions = new();
+        private CancellationToken _cancellationToken;
 
     public EditUserRolesTests(TestingWebAppFactory<Program> factory)
     {
@@ -33,10 +35,10 @@ public class EditUserRolesTests : IClassFixture<TestingWebAppFactory<Program>>, 
 
         var createdUser = CreateUserMock.CreateUser(_usersOptions.AdministratorEmail, RoleType.Administrator);
         _db.Users.Add(createdUser);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(_cancellationToken);
 
         var tokenService = _scope.ServiceProvider.GetRequiredService<TokenService>();
-        var tokens = await tokenService.GenerateTokensAsync(createdUser, "test", new CancellationToken());
+        var tokens = await tokenService.GenerateTokensAsync(createdUser, "test", _cancellationToken);
         client.DefaultRequestHeaders.Add("Authorization", $"Bearer {tokens.accessToken}");
 
         var request = new EditUserRoles.Request(new[]
@@ -46,12 +48,12 @@ public class EditUserRolesTests : IClassFixture<TestingWebAppFactory<Program>>, 
         }, createdUser.Id);
 
         // Act
-        (await client.PutAsJsonAsync("/users/roles", request))
+        (await client.PutAsJsonAsync("/users/roles", request, cancellationToken: _cancellationToken))
             .EnsureSuccessStatusCode();
 
         // Assert
         var roles = await _db.Roles.Where(x => x.UserId == createdUser.Id)
-            .ToArrayAsync();
+            .ToArrayAsync(cancellationToken: _cancellationToken);
 
         roles.Should().NotBeEmpty();
         roles.Length.Should().Be(2);
@@ -61,16 +63,16 @@ public class EditUserRolesTests : IClassFixture<TestingWebAppFactory<Program>>, 
     {
         _scope = _factory.Services.CreateAsyncScope();
         _db = _scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
+        _cancellationToken = new CancellationTokenHelper().GetCancellationToken();
+        
         _usersOptions = _scope.ServiceProvider.GetRequiredService<IOptions<UsersOptions>>().Value;
         return Task.CompletedTask;
     }
 
     public async Task DisposeAsync()
     {
-        _db.Roles.RemoveRange(_db.Roles);
         _db.Users.RemoveRange(_db.Users);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(_cancellationToken);
         await _scope.DisposeAsync();
     }
 }
@@ -82,6 +84,7 @@ public class EditUserRolesValidatorTests : IClassFixture<TestingWebAppFactory<Pr
     private AsyncServiceScope _scope;
     private EditUserRoles.RequestValidator _validator;
     private UsersOptions _usersOptions = new();
+    private CancellationToken _cancellationToken;
 
     public EditUserRolesValidatorTests(TestingWebAppFactory<Program> factory)
     {
@@ -93,14 +96,14 @@ public class EditUserRolesValidatorTests : IClassFixture<TestingWebAppFactory<Pr
     {
         var createdUser = CreateUserMock.CreateUser(_usersOptions.AdministratorEmail, RoleType.Administrator);
         _db.Users.Add(createdUser);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(_cancellationToken);
 
         var result = await _validator.TestValidateAsync(
             new EditUserRoles.Request(new[]
             {
                 RoleType.User,
                 RoleType.Administrator
-            }, createdUser.Id));
+            }, createdUser.Id), cancellationToken: _cancellationToken);
         result.ShouldNotHaveAnyValidationErrors();
     }
 
@@ -109,10 +112,10 @@ public class EditUserRolesValidatorTests : IClassFixture<TestingWebAppFactory<Pr
     {
         var createdUser = CreateUserMock.CreateUser(_usersOptions.AdministratorEmail, RoleType.Administrator);
         _db.Users.Add(createdUser);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(_cancellationToken);
 
         var result = await _validator.TestValidateAsync(
-            new EditUserRoles.Request(Array.Empty<RoleType>(), createdUser.Id));
+            new EditUserRoles.Request(Array.Empty<RoleType>(), createdUser.Id), cancellationToken: _cancellationToken);
         result.ShouldHaveValidationErrorFor(x => x.Roles)
             .WithErrorCode("users_validation_role_required");
     }
@@ -126,7 +129,7 @@ public class EditUserRolesValidatorTests : IClassFixture<TestingWebAppFactory<Pr
             {
                 RoleType.User,
                 RoleType.Administrator
-            }, userId));
+            }, userId), cancellationToken: _cancellationToken);
         result.ShouldHaveValidationErrorFor(x => x.UserId)
             .WithErrorCode("general_validation_user_not_exist");
     }
@@ -137,14 +140,15 @@ public class EditUserRolesValidatorTests : IClassFixture<TestingWebAppFactory<Pr
         _db = _scope.ServiceProvider.GetRequiredService<AppDbContext>();
         _validator = new EditUserRoles.RequestValidator(_db);
         _usersOptions = _scope.ServiceProvider.GetRequiredService<IOptions<UsersOptions>>().Value;
+        _cancellationToken = new CancellationTokenHelper().GetCancellationToken();
+        
         return Task.CompletedTask;
     }
 
     public async Task DisposeAsync()
     {
-        _db.Roles.RemoveRange(_db.Roles);
         _db.Users.RemoveRange(_db.Users);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(_cancellationToken);
         await _scope.DisposeAsync();
     }
 }
