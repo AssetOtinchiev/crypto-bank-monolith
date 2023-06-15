@@ -50,7 +50,7 @@ public class GetAccountsTests : IClassFixture<TestingWebAppFactory<Program>>, IA
         var response = await client.GetFromJsonAsync<AccountModel[]>("/accounts", cancellationToken: _cancellationToken);
 
         // Assert
-        response.Should().NotBeNull();
+        response.Should().NotBeEmpty();
         response.Should().ContainEquivalentOf(new AccountModel()
         {
             Amount = account.Amount,

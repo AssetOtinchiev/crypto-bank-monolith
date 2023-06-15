@@ -45,7 +45,7 @@ public class GetUserRolesTests : IClassFixture<TestingWebAppFactory<Program>>, I
         var response = await client.GetFromJsonAsync<RoleModel[]>($"/users/roles?userId={createdUser.Id}", cancellationToken: _cancellationToken);
 
         // Assert
-        response.Should().NotBeNull();
+        response.Should().NotBeEmpty();
         response.Should().ContainEquivalentOf(new RoleModel()
         {
             Name = RoleType.Administrator,

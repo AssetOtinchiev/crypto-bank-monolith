@@ -53,7 +53,7 @@ public class GetAccountOpenedByPeriodTests : IClassFixture<TestingWebAppFactory<
                 QueryHelpers.AddQueryString("/accounts/period", query), cancellationToken: _cancellationToken);
 
         // Assert
-        response.Should().NotBeNull();
+        response.Should().NotBeEmpty();
         
         //todo add Assert
     }

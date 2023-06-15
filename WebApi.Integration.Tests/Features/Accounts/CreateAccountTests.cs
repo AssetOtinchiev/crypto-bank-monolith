@@ -51,8 +51,7 @@ public class CreateAccountTests : IClassFixture<TestingWebAppFactory<Program>>, 
         var accounts = await _db.Accounts
             .Where(x => x.UserId == createdUser.Id)
             .ToArrayAsync(cancellationToken: _cancellationToken);
-
-        accounts.Should().NotBeNull();
+        
         accounts.Should().HaveCountGreaterThanOrEqualTo(1);
         accounts.First().Amount.Should().Be(amount);
     }
