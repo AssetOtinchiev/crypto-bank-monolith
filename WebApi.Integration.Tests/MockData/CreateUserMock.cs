@@ -23,4 +23,24 @@ public static class CreateUserMock
         };
         return existingUser;
     }
+    
+    public static User CreateUser(string email, RoleType role, string password)
+    {
+        var existingUser = new User
+        {
+            Email = email,
+            Password = password,
+            RegisteredAt = DateTime.UtcNow,
+            DateOfBirth = new DateTime(2000, 01, 31).ToUniversalTime(),
+            Roles = new List<Role>
+            {
+                new()
+                {
+                    Name = role,
+                    CreatedAt = DateTime.Now.ToUniversalTime()
+                }
+            }
+        };
+        return existingUser;
+    }
 }

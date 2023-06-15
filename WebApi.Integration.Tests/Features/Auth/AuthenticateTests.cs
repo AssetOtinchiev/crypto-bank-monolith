@@ -6,7 +6,10 @@ using Microsoft.Extensions.DependencyInjection;
 using WebApi.Database;
 using WebApi.Features.Auth.Models;
 using WebApi.Features.Auth.Requests;
+using WebApi.Features.Users.Domain;
+using WebApi.Integration.Tests.Features.Users.MockData;
 using WebApi.Integration.Tests.Helpers;
+using WebApi.Shared;
 
 namespace WebApi.Integration.Tests.Features.Auth;
 
@@ -16,6 +19,7 @@ public class AuthenticateTests : IClassFixture<TestingWebAppFactory<Program>>, I
     private AppDbContext _db;
     private AsyncServiceScope _scope;
     private CancellationToken _cancellationToken;
+
     public AuthenticateTests(TestingWebAppFactory<Program> factory)
     {
         _factory = factory;
@@ -26,29 +30,30 @@ public class AuthenticateTests : IClassFixture<TestingWebAppFactory<Program>>, I
     {
         // Arrange
         var client = _factory.CreateClient();
-        (await client.PostAsJsonAsync("/users", new
-            {
-                Email = "test@test.com",
-                Password = "qwerty123456A!",
-                DateOfBirth = DateTime.UtcNow.AddYears(-20),
-            }, cancellationToken: _cancellationToken))
-            .EnsureSuccessStatusCode();
+        var password = "qwerty123456A!";
+        var email = "test@test.com";
+        var passwordHelper = _scope.ServiceProvider.GetRequiredService<PasswordHelper>();
+        var hashPassword = passwordHelper.GetHashUsingArgon2(password);
+        var createdUser = CreateUserMock.CreateUser(email, RoleType.User, hashPassword);
+        _db.Users.Add(createdUser);
+        await _db.SaveChangesAsync(_cancellationToken);
 
         // Act
         var response = await client.PostAsJsonAsync("/auth", new
         {
-            Email = "test@test.com",
-            Password = "qwerty123456A!"
+            Email = email,
+            Password = password
         }, cancellationToken: _cancellationToken);
 
         // Assert
         response.EnsureSuccessStatusCode();
 
-        var accessTokenModel = await response.Content.ReadFromJsonAsync<AccessTokenModel>(cancellationToken: _cancellationToken);
+        var accessTokenModel =
+            await response.Content.ReadFromJsonAsync<AccessTokenModel>(cancellationToken: _cancellationToken);
         accessTokenModel.Should().NotBeNull();
         accessTokenModel.AccessToken.Should().NotBeEmpty();
     }
-    
+
     [Fact]
     public async Task Should_require_email()
     {
@@ -72,7 +77,7 @@ public class AuthenticateTests : IClassFixture<TestingWebAppFactory<Program>>, I
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
-    
+
     [Fact]
     public async Task Should_require_password()
     {
@@ -102,7 +107,7 @@ public class AuthenticateTests : IClassFixture<TestingWebAppFactory<Program>>, I
         _scope = _factory.Services.CreateAsyncScope();
         _db = _scope.ServiceProvider.GetRequiredService<AppDbContext>();
         _cancellationToken = new CancellationTokenHelper().GetCancellationToken();
-        
+
         return Task.CompletedTask;
     }
 
@@ -155,7 +160,7 @@ public class AuthenticateValidatorTests : IClassFixture<TestingWebAppFactory<Pro
         _db = _scope.ServiceProvider.GetRequiredService<AppDbContext>();
         _validator = new Authenticate.RequestValidator();
         _cancellationToken = new CancellationTokenHelper().GetCancellationToken();
-        
+
         return Task.CompletedTask;
     }
 
