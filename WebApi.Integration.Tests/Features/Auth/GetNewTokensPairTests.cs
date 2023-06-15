@@ -10,7 +10,10 @@ using Microsoft.IdentityModel.Tokens;
 using WebApi.Database;
 using WebApi.Features.Auth.Models;
 using WebApi.Features.Auth.Options;
+using WebApi.Features.Users.Domain;
+using WebApi.Integration.Tests.Features.Users.MockData;
 using WebApi.Integration.Tests.Helpers;
+using WebApi.Shared;
 
 namespace WebApi.Integration.Tests.Features.Auth;
 
@@ -32,19 +35,19 @@ public class GetNewTokensPairTests : IClassFixture<TestingWebAppFactory<Program>
     {
         // Arrange
         var client = _factory.CreateClient();
+
+        var password = "qwerty123456A!";
         var email = "test@test.com";
-        (await client.PostAsJsonAsync("/users", new
-            {
-                Email = email,
-                Password = "qwerty123456A!",
-                DateOfBirth = DateTime.UtcNow.AddYears(-20),
-            }, cancellationToken: _cancellationToken))
-            .EnsureSuccessStatusCode();
+        var passwordHelper = _scope.ServiceProvider.GetRequiredService<PasswordHelper>();
+        var hashPassword = passwordHelper.GetHashUsingArgon2(password);
+        var createdUser = CreateUserMock.CreateUser(email, RoleType.User, hashPassword);
+        _db.Users.Add(createdUser);
+        await _db.SaveChangesAsync(_cancellationToken);
 
         var response = await client.PostAsJsonAsync("/auth", new
         {
             Email = email,
-            Password = "qwerty123456A!"
+            Password = password
         }, cancellationToken: _cancellationToken);
 
         response.EnsureSuccessStatusCode();
