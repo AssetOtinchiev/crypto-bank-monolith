@@ -28,13 +28,13 @@ public class RegisterUserTests : IClassFixture<TestingWebAppFactory<Program>>, I
     {
         // Arrange
         var client = _factory.CreateClient();
-
+        var dateBirth = DateTime.UtcNow.AddYears(-20);
         // Act
         (await client.PostAsJsonAsync("/users", new
             {
                 Email = "test@test.com",
                 Password = "qwerty123456A!",
-                DateOfBirth = "2000-01-31",
+                DateOfBirth = dateBirth,
             }, cancellationToken: _cancellationToken))
             .EnsureSuccessStatusCode();
 
@@ -42,7 +42,7 @@ public class RegisterUserTests : IClassFixture<TestingWebAppFactory<Program>>, I
         var user = await _db.Users.SingleOrDefaultAsync(x => x.Email == "test@test.com", cancellationToken: _cancellationToken);
         user.Should().NotBeNull();
         user!.RegisteredAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(10));
-        user.DateOfBirth.Date.Should().Be(new DateTime(2000, 01, 31).Date);
+        user.DateOfBirth.Date.Should().Be(dateBirth.Date);
 
         var passwordHelper = _scope.ServiceProvider.GetRequiredService<PasswordHelper>();
         passwordHelper.VerifyPassword("qwerty123456A!", user.Password).Should()

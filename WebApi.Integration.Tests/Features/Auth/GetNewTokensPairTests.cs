@@ -28,7 +28,7 @@ public class GetNewTokensPairTests : IClassFixture<TestingWebAppFactory<Program>
             {
                 Email = "test@test.com",
                 Password = "qwerty123456A!",
-                DateOfBirth = "2000-01-31",
+                DateOfBirth = DateTime.UtcNow.AddYears(-20),
             }, cancellationToken: _cancellationToken))
             .EnsureSuccessStatusCode();
 
@@ -66,6 +66,7 @@ public class GetNewTokensPairTests : IClassFixture<TestingWebAppFactory<Program>
 
     public async Task DisposeAsync()
     {
+        _db.RefreshTokens.RemoveRange(_db.RefreshTokens);
         _db.Users.RemoveRange(_db.Users);
         await _db.SaveChangesAsync(_cancellationToken);
         await _scope.DisposeAsync();
