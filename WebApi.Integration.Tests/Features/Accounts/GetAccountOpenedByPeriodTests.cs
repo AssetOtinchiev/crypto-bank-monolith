@@ -88,6 +88,28 @@ public class GetAccountOpenedByPeriodTests : IClassFixture<TestingWebAppFactory<
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
+    
+    [Fact]
+    public async Task Should_validate_auth_token()
+    { 
+        // Arrange
+        var client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Add("Authorization", $"Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiJhYmNkMTIzIiwiZXhwaXJ5IjoxNjQ2NjM1NjExMzAxfQ.");
+        
+        var query = new Dictionary<string, string>
+        {
+            ["startDate"] = DateTime.Now.AddDays(-2).ToUniversalTime().ToString(CultureInfo.InvariantCulture),
+            ["endDate"] = DateTime.Now.ToUniversalTime().ToString(CultureInfo.InvariantCulture)
+        };
+
+        // Act
+        var response =
+            await client.GetAsync(
+                QueryHelpers.AddQueryString("/accounts/period", query));
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
 
     public static IEnumerable<object[]> Accounts
     {

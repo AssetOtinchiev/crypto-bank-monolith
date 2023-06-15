@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
 using FluentValidation.TestHelper;
@@ -59,6 +60,25 @@ public class EditUserRolesTests : IClassFixture<TestingWebAppFactory<Program>>, 
         roles.Length.Should().Be(2);
     }
 
+    [Fact]
+    public async Task Should_validate_auth_token()
+    { 
+        // Arrange
+        var client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Add("Authorization", $"Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiJhYmNkMTIzIiwiZXhwaXJ5IjoxNjQ2NjM1NjExMzAxfQ.");
+        var request = new EditUserRoles.Request(new[]
+        {
+            RoleType.User,
+            RoleType.Administrator
+        }, Guid.NewGuid());
+        
+        // Act
+        var response = await client.PutAsJsonAsync("/users/roles", request, cancellationToken: _cancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+    
     public Task InitializeAsync()
     {
         _scope = _factory.Services.CreateAsyncScope();

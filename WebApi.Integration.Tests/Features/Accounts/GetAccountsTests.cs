@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
 using FluentValidation.TestHelper;
@@ -62,6 +63,20 @@ public class GetAccountsTests : IClassFixture<TestingWebAppFactory<Program>>, IA
             DateOfOpening = account.DateOfOpening,
             Number = account.Number
         });
+    }
+    
+    [Fact]
+    public async Task Should_validate_auth_token()
+    { 
+        // Arrange
+        var client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Add("Authorization", $"Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiJhYmNkMTIzIiwiZXhwaXJ5IjoxNjQ2NjM1NjExMzAxfQ.");
+        
+        // Act
+        var response = await client.GetAsync("/accounts", cancellationToken: _cancellationToken);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     private static User AddFakeUser()

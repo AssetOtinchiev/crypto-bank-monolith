@@ -110,6 +110,25 @@ public class CreateAccountTests : IClassFixture<TestingWebAppFactory<Program>>, 
         response.Detail.Should().Be("Accounts limit exceeded");
     }
 
+    [Fact]
+    public async Task Should_validate_auth_token()
+    { 
+        // Arrange
+        var client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Add("Authorization", $"Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiJhYmNkMTIzIiwiZXhwaXJ5IjoxNjQ2NjM1NjExMzAxfQ.");
+        
+        // Act
+        var result = await client.PostAsJsonAsync("/accounts", new
+        {
+            UserId = 1,
+            Currency = "btc",
+            Amount = 1,
+        }, cancellationToken: _cancellationToken);
+
+        // Assert
+        result.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
     public Task InitializeAsync()
     {
         _scope = _factory.Services.CreateAsyncScope();
