@@ -38,8 +38,11 @@ public class GetAccountsTests : IClassFixture<TestingWebAppFactory<Program>>, IA
             Currency = "btc",
             DateOfOpening = DateTime.Now.ToUniversalTime()
         };
+        var fakeUser = AddFakeUser();
+        
         createdUser.Accounts.Add(account);
         _db.Users.Add(createdUser);
+        _db.Users.Add(fakeUser);
 
         await _db.SaveChangesAsync(_cancellationToken);
         var tokenService = _scope.ServiceProvider.GetRequiredService<TokenService>();
@@ -59,6 +62,19 @@ public class GetAccountsTests : IClassFixture<TestingWebAppFactory<Program>>, IA
             DateOfOpening = account.DateOfOpening,
             Number = account.Number
         });
+    }
+
+    private static User AddFakeUser()
+    {
+        var fakeAccount = new Account()
+        {
+            Amount = 11,
+            Currency = "eth",
+            DateOfOpening = DateTime.Now.ToUniversalTime()
+        };
+        var createdFakeUser = CreateUserMock.CreateUser("testFake@gmail.com", RoleType.User);
+        createdFakeUser.Accounts.Add(fakeAccount);
+        return createdFakeUser;
     }
 
     public Task InitializeAsync()
