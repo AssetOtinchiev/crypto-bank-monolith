@@ -42,11 +42,12 @@ public class EditUserRolesTests : IClassFixture<TestingWebAppFactory<Program>>, 
         var tokens = await tokenService.GenerateTokensAsync(createdUser, "test", _cancellationToken);
         client.DefaultRequestHeaders.Add("Authorization", $"Bearer {tokens.accessToken}");
 
-        var request = new EditUserRoles.Request(new[]
+        var userRoles = new[]
         {
             RoleType.User,
             RoleType.Administrator
-        }, createdUser.Id);
+        };
+        var request = new EditUserRoles.Request(userRoles, createdUser.Id);
 
         // Act
         (await client.PutAsJsonAsync("/users/roles", request, cancellationToken: _cancellationToken))
@@ -58,6 +59,8 @@ public class EditUserRolesTests : IClassFixture<TestingWebAppFactory<Program>>, 
 
         roles.Should().NotBeEmpty();
         roles.Length.Should().Be(2);
+
+        roles.Select(x => x.Name).Should().Contain(userRoles);
     }
 
     [Fact]
