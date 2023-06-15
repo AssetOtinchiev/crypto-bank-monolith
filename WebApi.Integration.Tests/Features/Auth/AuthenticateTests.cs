@@ -139,17 +139,17 @@ public class AuthenticateValidatorTests : IClassFixture<TestingWebAppFactory<Pro
     [InlineData("", "PaaSSWORD")]
     public async Task Should_require_email(string email, string password)
     {
-        var result = await _validator.TestValidateAsync(new Authenticate.Request(email, password));
+        var result = await _validator.TestValidateAsync(new Authenticate.Request(email, password), cancellationToken: _cancellationToken);
         result.ShouldHaveValidationErrorFor(x => x.Email)
             .WithErrorCode("auth_validation_invalid_credential");
     }
 
     [Theory]
     [InlineData("adsadas@gmail.com", "aa")]
-    [InlineData("email@.com", " ")]
+    [InlineData("email@gmail.com", " ")]
     public async Task Should_require_password(string email, string password)
     {
-        var result = await _validator.TestValidateAsync(new Authenticate.Request(email, password));
+        var result = await _validator.TestValidateAsync(new Authenticate.Request(email, password), cancellationToken: _cancellationToken);
         result.ShouldHaveValidationErrorFor(x => x.Password)
             .WithErrorCode("auth_validation_invalid_credential");
     }
@@ -169,7 +169,7 @@ public class AuthenticateValidatorTests : IClassFixture<TestingWebAppFactory<Pro
         _db.RefreshTokens.RemoveRange(_db.RefreshTokens);
         _db.Roles.RemoveRange(_db.Roles);
         _db.Users.RemoveRange(_db.Users);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(_cancellationToken);
         await _scope.DisposeAsync();
     }
 }
