@@ -40,11 +40,14 @@ public class RegisterUserTests : IClassFixture<TestingWebAppFactory<Program>>, I
             .EnsureSuccessStatusCode();
 
         // Assert
-        var user = await _db.Users.SingleOrDefaultAsync(x => x.Email == "test@test.com",
+        var user = await _db.Users
+            .Include(x => x.Roles)
+            .SingleOrDefaultAsync(x => x.Email == "test@test.com",
             cancellationToken: _cancellationToken);
         user.Should().NotBeNull();
         user!.RegisteredAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(10));
         user.DateOfBirth.Date.Should().Be(dateBirth.Date);
+        user.Roles.First().Name.Should().Be(RoleType.User);
 
         var passwordHelper = _scope.ServiceProvider.GetRequiredService<PasswordHelper>();
         passwordHelper.VerifyPassword("qwerty123456A!", user.Password).Should()
