@@ -38,22 +38,23 @@ public class CreateAccountTests : IClassFixture<TestingWebAppFactory<Program>>, 
         var tokens = await tokenService.GenerateTokensAsync(createdUser, "test", _cancellationToken);
         client.DefaultRequestHeaders.Add("Authorization", $"Bearer {tokens.accessToken}");
         var amount = 100;
+        var currency = "btc";
         
         // Act
         (await client.PostAsJsonAsync("/accounts", new
         {
             UserId = createdUser.Id,
-            Currency = "btc",
-            Amount = 100,
+            Currency = currency,
+            Amount = amount,
         }, cancellationToken: _cancellationToken)).EnsureSuccessStatusCode();
 
         // Assert
-        var accounts = await _db.Accounts
-            .Where(x => x.UserId == createdUser.Id)
-            .ToArrayAsync(cancellationToken: _cancellationToken);
-        
-        accounts.Should().HaveCount(1);
-        accounts.First().Amount.Should().Be(amount);
+        var account = await _db.Accounts
+            .SingleOrDefaultAsync(x => x.UserId == createdUser.Id, cancellationToken: _cancellationToken);
+
+        account.Should().NotBeNull();
+        account.Amount.Should().Be(amount);
+        account.Currency.Should().Be(currency);
     }
 
     public Task InitializeAsync()
