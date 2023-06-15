@@ -108,6 +108,18 @@ public class GetAccountOpenedByPeriodTests : IClassFixture<TestingWebAppFactory<
                         Amount = 10,
                         Currency = "btc",
                         DateOfOpening = DateTime.Now.ToUniversalTime()
+                    },
+                    new()
+                    {
+                        Amount = 12,
+                        Currency = "eth",
+                        DateOfOpening = DateTime.Now.AddDays(-20).ToUniversalTime()
+                    },
+                    new()
+                    {
+                        Amount = 12,
+                        Currency = "eth",
+                        DateOfOpening = DateTime.Now.AddDays(20).ToUniversalTime()
                     }
                 }
             };
@@ -126,6 +138,18 @@ public class GetAccountOpenedByPeriodTests : IClassFixture<TestingWebAppFactory<
                         Amount = 15,
                         Currency = "xrp",
                         DateOfOpening = DateTime.Now.ToUniversalTime()
+                    },
+                    new()
+                    {
+                        Amount = 12,
+                        Currency = "eth",
+                        DateOfOpening = DateTime.Now.AddDays(-20).ToUniversalTime()
+                    },
+                    new()
+                    {
+                        Amount = 12,
+                        Currency = "eth",
+                        DateOfOpening = DateTime.Now.AddDays(20).ToUniversalTime()
                     }
                 }
             };
