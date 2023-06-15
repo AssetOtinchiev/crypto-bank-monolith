@@ -1,12 +1,19 @@
+using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
 using FluentValidation.TestHelper;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using WebApi.Database;
+using WebApi.Features.Accounts.Domain;
+using WebApi.Features.Accounts.Options;
 using WebApi.Features.Accounts.Requests;
 using WebApi.Features.Auth.Services;
 using WebApi.Features.Users.Domain;
+using WebApi.Features.Users.Options;
 using WebApi.Integration.Tests.Features.Users.MockData;
 using WebApi.Integration.Tests.Helpers;
 
@@ -18,6 +25,7 @@ public class CreateAccountTests : IClassFixture<TestingWebAppFactory<Program>>, 
     private AppDbContext _db;
     private AsyncServiceScope _scope;
     private CancellationToken _cancellationToken;
+    private AccountsOptions _accountsOptions;
 
     public CreateAccountTests(TestingWebAppFactory<Program> factory)
     {
@@ -57,11 +65,57 @@ public class CreateAccountTests : IClassFixture<TestingWebAppFactory<Program>>, 
         account.Currency.Should().Be(currency);
     }
 
+    [Fact]
+    public async Task Should_return_logic_error_if_account_limit_exceeded()
+    {
+        // Arrange
+        var client = _factory.CreateClient();
+
+        var createdUser = CreateUserMock.CreateUser("test@gmail.com", RoleType.User);
+        _db.Users.Add(createdUser);
+        await _db.SaveChangesAsync(_cancellationToken);
+
+        var accounts = new List<Account>();
+        for (int i = 0; i < _accountsOptions.MaxAvailableAccounts; i++)
+        {
+            accounts.Add(new Account()
+            {
+                UserId = createdUser.Id,
+                Currency = Guid.NewGuid().ToString(),
+                Amount = new Random().Next(1,15),
+                DateOfOpening = DateTime.Now.ToUniversalTime()
+            });
+        }
+        _db.Accounts.AddRange(accounts);
+        await _db.SaveChangesAsync(_cancellationToken);
+
+        var tokenService = _scope.ServiceProvider.GetRequiredService<TokenService>();
+        var tokens = await tokenService.GenerateTokensAsync(createdUser, "test", _cancellationToken);
+        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {tokens.accessToken}");
+        var amount = 100;
+        var currency = "btc";
+        
+        // Act
+        var result = await client.PostAsJsonAsync("/accounts", new
+        {
+            UserId = createdUser.Id,
+            Currency = currency,
+            Amount = amount,
+        }, cancellationToken: _cancellationToken);
+
+        var response = await result.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken: _cancellationToken);
+        
+        // Assert
+        result.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
+        response.Detail.Should().Be("Accounts limit exceeded");
+    }
+
     public Task InitializeAsync()
     {
         _scope = _factory.Services.CreateAsyncScope();
         _db = _scope.ServiceProvider.GetRequiredService<AppDbContext>();
         _cancellationToken = new CancellationTokenHelper().GetCancellationToken();
+        _accountsOptions = _scope.ServiceProvider.GetRequiredService<IOptions<AccountsOptions>>().Value;
         return Task.CompletedTask;
     }
 
