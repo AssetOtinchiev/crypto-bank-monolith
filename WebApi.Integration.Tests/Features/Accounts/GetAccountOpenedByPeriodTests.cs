@@ -40,11 +40,13 @@ public class GetAccountOpenedByPeriodTests : IClassFixture<TestingWebAppFactory<
         var tokenService = _scope.ServiceProvider.GetRequiredService<TokenService>();
         var tokens = await tokenService.GenerateTokensAsync(createdUser, "test", _cancellationToken);
         client.DefaultRequestHeaders.Add("Authorization", $"Bearer {tokens.accessToken}");
-        
+
+        var startDate = DateTimeOffset.Now.AddDays(-2).ToUniversalTime();
+        var endDate = DateTimeOffset.Now.ToUniversalTime();
         var query = new Dictionary<string, string>
         {
-            ["startDate"] = DateTimeOffset.Now.AddDays(-2).ToUniversalTime().ToString(),
-            ["endDate"] = DateTimeOffset.Now.ToUniversalTime().ToString()
+            ["startDate"] = startDate.ToString(),
+            ["endDate"] = endDate.ToString()
         };
 
         // Act
@@ -56,7 +58,13 @@ public class GetAccountOpenedByPeriodTests : IClassFixture<TestingWebAppFactory<
         response.Should().NotBeEmpty();
 
         response.Length.Should().Be(2);
-
+        var filteredAccounts = accounts.Where(x => x.DateOfOpening >= startDate && x.DateOfOpening <= endDate).ToArray();
+        foreach (var account in filteredAccounts)
+        {
+           var periodData = response.FirstOrDefault(x => x.Date == account.DateOfOpening.Date);
+           periodData.Should().NotBeNull();
+           periodData.Count.Should().Be(1);
+        }
     }
 
     [Theory, MemberData(nameof(Accounts))]
