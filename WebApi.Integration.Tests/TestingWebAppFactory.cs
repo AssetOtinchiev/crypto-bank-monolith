@@ -7,7 +7,7 @@ using WebApi.Database;
 
 namespace WebApi.Integration.Tests;
 
-public class TestingWebAppFactory<TEntryPoint> : WebApplicationFactory<Program> where TEntryPoint : Program
+public class TestingWebAppFactory<TEntryPoint> : WebApplicationFactory<TEntryPoint> where TEntryPoint : class
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
