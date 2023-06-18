@@ -37,7 +37,7 @@ public class GetUserProfileTests : IClassFixture<TestingWebAppFactory<Program>>,
         var createdUser = CreateUserMock.CreateUser(_usersOptions.AdministratorEmail, RoleType.Administrator);
         _db.Users.Add(createdUser);
         await _db.SaveChangesAsync(_cancellationToken);
-        
+
         var tokenService = _scope.ServiceProvider.GetRequiredService<TokenService>();
         var tokens = await tokenService.GenerateTokensAsync(createdUser, "test", _cancellationToken);
         client.DefaultRequestHeaders.Add("Authorization", $"Bearer {tokens.accessToken}");
@@ -50,14 +50,15 @@ public class GetUserProfileTests : IClassFixture<TestingWebAppFactory<Program>>,
         response.Email.Should().MatchEquivalentOf(createdUser.Email);
         response.DateOfBirth.Should().Be(new DateTime(2000, 01, 31).ToUniversalTime());
     }
-    
+
     [Fact]
     public async Task Should_validate_auth_token()
-    { 
+    {
         // Arrange
         var client = _factory.CreateClient();
-        client.DefaultRequestHeaders.Add("Authorization", $"Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiJhYmNkMTIzIiwiZXhwaXJ5IjoxNjQ2NjM1NjExMzAxfQ.");
-        
+        client.DefaultRequestHeaders.Add("Authorization",
+            $"Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiJhYmNkMTIzIiwiZXhwaXJ5IjoxNjQ2NjM1NjExMzAxfQ.");
+
         // Act
         var response = await client.GetAsync($"/users", cancellationToken: _cancellationToken);
 

@@ -133,7 +133,9 @@ public class GetNewTokensPairTests : IClassFixture<TestingWebAppFactory<Program>
             await newTokenPairResponse.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken: _cancellationToken);
         response.Detail.Should().Be("Invalid token");
 
-        var refreshTokens = await _db.RefreshTokens.AsNoTracking().Where(x => x.UserId == createdUser.Id && x.DeviceName == String.Empty).ToListAsync(cancellationToken: _cancellationToken);
+        var refreshTokens = await _db.RefreshTokens.AsNoTracking()
+            .Where(x => x.UserId == createdUser.Id && x.DeviceName == String.Empty)
+            .ToListAsync(cancellationToken: _cancellationToken);
         refreshTokens.Select(x => x.IsRevoked).Should().AllBeEquivalentTo(true);
     }
 

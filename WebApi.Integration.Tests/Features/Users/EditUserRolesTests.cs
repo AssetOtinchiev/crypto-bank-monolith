@@ -21,7 +21,7 @@ public class EditUserRolesTests : IClassFixture<TestingWebAppFactory<Program>>, 
     private AppDbContext _db;
     private AsyncServiceScope _scope;
     private UsersOptions _usersOptions = new();
-        private CancellationToken _cancellationToken;
+    private CancellationToken _cancellationToken;
 
     public EditUserRolesTests(TestingWebAppFactory<Program> factory)
     {
@@ -65,27 +65,28 @@ public class EditUserRolesTests : IClassFixture<TestingWebAppFactory<Program>>, 
 
     [Fact]
     public async Task Should_validate_auth_token()
-    { 
+    {
         // Arrange
         var client = _factory.CreateClient();
-        client.DefaultRequestHeaders.Add("Authorization", $"Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiJhYmNkMTIzIiwiZXhwaXJ5IjoxNjQ2NjM1NjExMzAxfQ.");
+        client.DefaultRequestHeaders.Add("Authorization",
+            $"Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiJhYmNkMTIzIiwiZXhwaXJ5IjoxNjQ2NjM1NjExMzAxfQ.");
         var request = new EditUserRoles.Request(new[]
         {
             RoleType.User,
             RoleType.Administrator
         }, Guid.NewGuid());
-        
+
         // Act
         var response = await client.PutAsJsonAsync("/users/roles", request, cancellationToken: _cancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
-    
+
     public Task InitializeAsync()
     {
         new BaseInitializeHelper().Initialize(_factory, ref _scope, ref _db, ref _cancellationToken);
-        
+
         _usersOptions = _scope.ServiceProvider.GetRequiredService<IOptions<UsersOptions>>().Value;
         return Task.CompletedTask;
     }

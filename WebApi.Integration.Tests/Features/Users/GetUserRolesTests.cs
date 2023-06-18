@@ -43,7 +43,8 @@ public class GetUserRolesTests : IClassFixture<TestingWebAppFactory<Program>>, I
         client.DefaultRequestHeaders.Add("Authorization", $"Bearer {tokens.accessToken}");
 
         // Act
-        var response = await client.GetFromJsonAsync<RoleModel[]>($"/users/roles?userId={createdUser.Id}", cancellationToken: _cancellationToken);
+        var response = await client.GetFromJsonAsync<RoleModel[]>($"/users/roles?userId={createdUser.Id}",
+            cancellationToken: _cancellationToken);
 
         // Assert
         response.Should().NotBeEmpty();
@@ -53,16 +54,18 @@ public class GetUserRolesTests : IClassFixture<TestingWebAppFactory<Program>>, I
             UserId = createdUser.Id
         });
     }
-    
+
     [Fact]
     public async Task Should_validate_auth_token()
-    { 
+    {
         // Arrange
         var client = _factory.CreateClient();
-        client.DefaultRequestHeaders.Add("Authorization", $"Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiJhYmNkMTIzIiwiZXhwaXJ5IjoxNjQ2NjM1NjExMzAxfQ.");
-        
+        client.DefaultRequestHeaders.Add("Authorization",
+            $"Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiJhYmNkMTIzIiwiZXhwaXJ5IjoxNjQ2NjM1NjExMzAxfQ.");
+
         // Act
-        var response = await client.GetAsync($"/users/roles?userId={Guid.NewGuid()}", cancellationToken: _cancellationToken);
+        var response = await client.GetAsync($"/users/roles?userId={Guid.NewGuid()}",
+            cancellationToken: _cancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
@@ -71,7 +74,7 @@ public class GetUserRolesTests : IClassFixture<TestingWebAppFactory<Program>>, I
     public Task InitializeAsync()
     {
         new BaseInitializeHelper().Initialize(_factory, ref _scope, ref _db, ref _cancellationToken);
-        
+
         _usersOptions = _scope.ServiceProvider.GetRequiredService<IOptions<UsersOptions>>().Value;
         return Task.CompletedTask;
     }

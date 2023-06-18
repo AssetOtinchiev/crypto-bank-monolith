@@ -45,7 +45,7 @@ public class CreateAccountTests : IClassFixture<TestingWebAppFactory<Program>>, 
         client.DefaultRequestHeaders.Add("Authorization", $"Bearer {tokens.accessToken}");
         var amount = 100;
         var currency = "btc";
-        
+
         // Act
         (await client.PostAsJsonAsync("/accounts", new
         {
@@ -80,10 +80,11 @@ public class CreateAccountTests : IClassFixture<TestingWebAppFactory<Program>>, 
             {
                 UserId = createdUser.Id,
                 Currency = Guid.NewGuid().ToString(),
-                Amount = new Random().Next(1,15),
+                Amount = new Random().Next(1, 15),
                 DateOfOpening = DateTime.Now.ToUniversalTime()
             });
         }
+
         _db.Accounts.AddRange(accounts);
         await _db.SaveChangesAsync(_cancellationToken);
 
@@ -92,7 +93,7 @@ public class CreateAccountTests : IClassFixture<TestingWebAppFactory<Program>>, 
         client.DefaultRequestHeaders.Add("Authorization", $"Bearer {tokens.accessToken}");
         var amount = 100;
         var currency = "btc";
-        
+
         // Act
         var result = await client.PostAsJsonAsync("/accounts", new
         {
@@ -102,7 +103,7 @@ public class CreateAccountTests : IClassFixture<TestingWebAppFactory<Program>>, 
         }, cancellationToken: _cancellationToken);
 
         var response = await result.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken: _cancellationToken);
-        
+
         // Assert
         result.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
         response.Detail.Should().Be("Accounts limit exceeded");
@@ -110,11 +111,12 @@ public class CreateAccountTests : IClassFixture<TestingWebAppFactory<Program>>, 
 
     [Fact]
     public async Task Should_validate_auth_token()
-    { 
+    {
         // Arrange
         var client = _factory.CreateClient();
-        client.DefaultRequestHeaders.Add("Authorization", $"Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiJhYmNkMTIzIiwiZXhwaXJ5IjoxNjQ2NjM1NjExMzAxfQ.");
-        
+        client.DefaultRequestHeaders.Add("Authorization",
+            $"Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiJhYmNkMTIzIiwiZXhwaXJ5IjoxNjQ2NjM1NjExMzAxfQ.");
+
         // Act
         var result = await client.PostAsJsonAsync("/accounts", new
         {
@@ -172,7 +174,8 @@ public class CreateAccountValidatorTests : IClassFixture<TestingWebAppFactory<Pr
         _db.Users.Add(createdUser);
         await _db.SaveChangesAsync(_cancellationToken);
 
-        var result = await _validator.TestValidateAsync(new CreateAccount.Request(createdUser.Id, currency, 1), cancellationToken: _cancellationToken);
+        var result = await _validator.TestValidateAsync(new CreateAccount.Request(createdUser.Id, currency, 1),
+            cancellationToken: _cancellationToken);
         result.ShouldHaveValidationErrorFor(x => x.Currency)
             .WithErrorCode("accounts_validation_currency_required");
     }
@@ -186,7 +189,8 @@ public class CreateAccountValidatorTests : IClassFixture<TestingWebAppFactory<Pr
         _db.Users.Add(createdUser);
         await _db.SaveChangesAsync(_cancellationToken);
 
-        var result = await _validator.TestValidateAsync(new CreateAccount.Request(createdUser.Id, currency, 1), cancellationToken: _cancellationToken);
+        var result = await _validator.TestValidateAsync(new CreateAccount.Request(createdUser.Id, currency, 1),
+            cancellationToken: _cancellationToken);
         result.ShouldHaveValidationErrorFor(x => x.Currency)
             .WithErrorCode("accounts_validation_currency_too_short");
     }
@@ -200,7 +204,8 @@ public class CreateAccountValidatorTests : IClassFixture<TestingWebAppFactory<Pr
         _db.Users.Add(createdUser);
         await _db.SaveChangesAsync(_cancellationToken);
 
-        var result = await _validator.TestValidateAsync(new CreateAccount.Request(createdUser.Id, "btc", amount), cancellationToken: _cancellationToken);
+        var result = await _validator.TestValidateAsync(new CreateAccount.Request(createdUser.Id, "btc", amount),
+            cancellationToken: _cancellationToken);
         result.ShouldHaveValidationErrorFor(x => x.Amount)
             .WithErrorCode("accounts_validation_amount_low");
     }

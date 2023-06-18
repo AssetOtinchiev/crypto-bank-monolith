@@ -43,7 +43,7 @@ public class RegisterUserTests : IClassFixture<TestingWebAppFactory<Program>>, I
         var user = await _db.Users
             .Include(x => x.Roles)
             .SingleOrDefaultAsync(x => x.Email == "test@test.com",
-            cancellationToken: _cancellationToken);
+                cancellationToken: _cancellationToken);
         user.Should().NotBeNull();
         user!.RegisteredAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(10));
         user.DateOfBirth.Date.Should().Be(dateBirth.Date);

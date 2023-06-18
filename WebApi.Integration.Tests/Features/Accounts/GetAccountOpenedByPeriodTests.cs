@@ -58,12 +58,13 @@ public class GetAccountOpenedByPeriodTests : IClassFixture<TestingWebAppFactory<
         response.Should().NotBeEmpty();
 
         response.Length.Should().Be(2);
-        var filteredAccounts = accounts.Where(x => x.DateOfOpening >= startDate && x.DateOfOpening <= endDate).ToArray();
+        var filteredAccounts =
+            accounts.Where(x => x.DateOfOpening >= startDate && x.DateOfOpening <= endDate).ToArray();
         foreach (var account in filteredAccounts)
         {
-           var periodData = response.FirstOrDefault(x => x.Date == account.DateOfOpening.Date);
-           periodData.Should().NotBeNull();
-           periodData.Count.Should().Be(1);
+            var periodData = response.FirstOrDefault(x => x.Date == account.DateOfOpening.Date);
+            periodData.Should().NotBeNull();
+            periodData.Count.Should().Be(1);
         }
     }
 
@@ -96,14 +97,15 @@ public class GetAccountOpenedByPeriodTests : IClassFixture<TestingWebAppFactory<
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
-    
+
     [Fact]
     public async Task Should_validate_auth_token()
-    { 
+    {
         // Arrange
         var client = _factory.CreateClient();
-        client.DefaultRequestHeaders.Add("Authorization", $"Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiJhYmNkMTIzIiwiZXhwaXJ5IjoxNjQ2NjM1NjExMzAxfQ.");
-        
+        client.DefaultRequestHeaders.Add("Authorization",
+            $"Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiJhYmNkMTIzIiwiZXhwaXJ5IjoxNjQ2NjM1NjExMzAxfQ.");
+
         var query = new Dictionary<string, string>
         {
             ["startDate"] = DateTime.Now.AddDays(-2).ToUniversalTime().ToString(CultureInfo.InvariantCulture),
@@ -189,7 +191,7 @@ public class GetAccountOpenedByPeriodTests : IClassFixture<TestingWebAppFactory<
     public Task InitializeAsync()
     {
         new BaseInitializeHelper().Initialize(_factory, ref _scope, ref _db, ref _cancellationToken);
-        
+
         return Task.CompletedTask;
     }
 

@@ -40,7 +40,7 @@ public class GetAccountsTests : IClassFixture<TestingWebAppFactory<Program>>, IA
             DateOfOpening = DateTime.Now.ToUniversalTime()
         };
         var fakeUser = AddFakeUser();
-        
+
         createdUser.Accounts.Add(account);
         _db.Users.Add(createdUser);
         _db.Users.Add(fakeUser);
@@ -51,7 +51,8 @@ public class GetAccountsTests : IClassFixture<TestingWebAppFactory<Program>>, IA
         client.DefaultRequestHeaders.Add("Authorization", $"Bearer {tokens.accessToken}");
 
         // Act
-        var response = await client.GetFromJsonAsync<AccountModel[]>("/accounts", cancellationToken: _cancellationToken);
+        var response =
+            await client.GetFromJsonAsync<AccountModel[]>("/accounts", cancellationToken: _cancellationToken);
 
         // Assert
         response.Should().NotBeEmpty();
@@ -64,14 +65,15 @@ public class GetAccountsTests : IClassFixture<TestingWebAppFactory<Program>>, IA
             Number = account.Number
         });
     }
-    
+
     [Fact]
     public async Task Should_validate_auth_token()
-    { 
+    {
         // Arrange
         var client = _factory.CreateClient();
-        client.DefaultRequestHeaders.Add("Authorization", $"Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiJhYmNkMTIzIiwiZXhwaXJ5IjoxNjQ2NjM1NjExMzAxfQ.");
-        
+        client.DefaultRequestHeaders.Add("Authorization",
+            $"Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiJhYmNkMTIzIiwiZXhwaXJ5IjoxNjQ2NjM1NjExMzAxfQ.");
+
         // Act
         var response = await client.GetAsync("/accounts", cancellationToken: _cancellationToken);
 
@@ -95,7 +97,7 @@ public class GetAccountsTests : IClassFixture<TestingWebAppFactory<Program>>, IA
     public Task InitializeAsync()
     {
         new BaseInitializeHelper().Initialize(_factory, ref _scope, ref _db, ref _cancellationToken);
-        
+
         return Task.CompletedTask;
     }
 
@@ -123,7 +125,8 @@ public class GetAccountsValidatorTests : IClassFixture<TestingWebAppFactory<Prog
     [Theory, MemberData(nameof(RandomGuidMock.Guids), MemberType = typeof(RandomGuidMock))]
     public async Task Should_require_user(Guid userId)
     {
-        var result = await _validator.TestValidateAsync(new GetAccounts.Request(userId), cancellationToken: _cancellationToken);
+        var result =
+            await _validator.TestValidateAsync(new GetAccounts.Request(userId), cancellationToken: _cancellationToken);
         result.ShouldHaveValidationErrorFor(x => x.UserId)
             .WithErrorCode("general_validation_user_not_exist");
     }

@@ -136,7 +136,8 @@ public class AuthenticateValidatorTests : IClassFixture<TestingWebAppFactory<Pro
     [InlineData("", "PaaSSWORD")]
     public async Task Should_require_email(string email, string password)
     {
-        var result = await _validator.TestValidateAsync(new Authenticate.Request(email, password), cancellationToken: _cancellationToken);
+        var result = await _validator.TestValidateAsync(new Authenticate.Request(email, password),
+            cancellationToken: _cancellationToken);
         result.ShouldHaveValidationErrorFor(x => x.Email)
             .WithErrorCode("auth_validation_invalid_credential");
     }
@@ -146,7 +147,8 @@ public class AuthenticateValidatorTests : IClassFixture<TestingWebAppFactory<Pro
     [InlineData("email@gmail.com", " ")]
     public async Task Should_require_password(string email, string password)
     {
-        var result = await _validator.TestValidateAsync(new Authenticate.Request(email, password), cancellationToken: _cancellationToken);
+        var result = await _validator.TestValidateAsync(new Authenticate.Request(email, password),
+            cancellationToken: _cancellationToken);
         result.ShouldHaveValidationErrorFor(x => x.Password)
             .WithErrorCode("auth_validation_invalid_credential");
     }
