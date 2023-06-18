@@ -33,8 +33,7 @@ public class TestingWebAppFactory<TEntryPoint> : WebApplicationFactory<TEntryPoi
 
             services.AddDbContext<AppDbContext>(options =>
                 options.UseNpgsql(_connectionString));
-               ;
-
+            
             var sp = services.BuildServiceProvider();
             using (var scope = sp.CreateScope())
             using (var appContext = scope.ServiceProvider.GetRequiredService<AppDbContext>())

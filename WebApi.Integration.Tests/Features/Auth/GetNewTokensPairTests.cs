@@ -5,10 +5,13 @@ using System.Security.Authentication;
 using System.Security.Claims;
 using FluentAssertions;
 using FluentValidation.TestHelper;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using WebApi.Database;
+using WebApi.Features.Auth.Domain;
 using WebApi.Features.Auth.Models;
 using WebApi.Features.Auth.Options;
 using WebApi.Features.Auth.Requests;
@@ -55,17 +58,17 @@ public class GetNewTokensPairTests : IClassFixture<TestingWebAppFactory<Program>
 
         response.EnsureSuccessStatusCode();
 
-        var accessTokenModel = await response.Content.ReadFromJsonAsync<AccessTokenModel>(cancellationToken: _cancellationToken);
+        var accessTokenModel =
+            await response.Content.ReadFromJsonAsync<AccessTokenModel>(cancellationToken: _cancellationToken);
         accessTokenModel.Should().NotBeNull();
         accessTokenModel.AccessToken.Should().NotBeEmpty();
-        
-        IEnumerable<string> cookies = response.Headers.SingleOrDefault(header => header.Key == "Set-Cookie").Value;
-        client.DefaultRequestHeaders.Add("Set-Cookie", cookies.SingleOrDefault());
 
         // Act
         var newTokenPairResponse = await client.GetAsync($"/auth/newTokens", cancellationToken: _cancellationToken);
-        var newTokenPair = await newTokenPairResponse.Content.ReadFromJsonAsync<AccessTokenModel>(cancellationToken: _cancellationToken);
-        
+        var newTokenPair =
+            await newTokenPairResponse.Content.ReadFromJsonAsync<AccessTokenModel>(
+                cancellationToken: _cancellationToken);
+
         // Assert
         newTokenPair.Should().NotBeNull();
         newTokenPair.AccessToken.Should().NotBeEmpty();
@@ -76,7 +79,7 @@ public class GetNewTokensPairTests : IClassFixture<TestingWebAppFactory<Program>
         var savedRefreshToken = _db.RefreshTokens.SingleOrDefault(x => x.Token == refreshToken);
         savedRefreshToken.Should().NotBeNull();
         savedRefreshToken.UserId.Should().Be(createdUser.Id);
-            
+
         var userId = await GetUserIdFromToken(newTokenPair.AccessToken);
         var user = await _db.Users.FindAsync(userId);
         user.Should().NotBeNull();
@@ -84,18 +87,69 @@ public class GetNewTokensPairTests : IClassFixture<TestingWebAppFactory<Program>
     }
 
     [Fact]
+    public async Task Should_validate_old_token()
+    {
+        // Arrange
+        var client = _factory.CreateClient();
+
+        var password = "qwerty123456A!";
+        var email = "test@test.com";
+        var passwordHelper = _scope.ServiceProvider.GetRequiredService<PasswordHelper>();
+        var hashPassword = passwordHelper.GetHashUsingArgon2(password);
+        var createdUser = CreateUserMock.CreateUser(email, RoleType.User, hashPassword);
+
+        var oldToken = "test";
+        createdUser.RefreshTokens.AddRange(new List<RefreshToken>()
+        {
+            new()
+            {
+                Token = oldToken,
+                DeviceName = "",
+                ExpiryDate = DateTime.Now.ToUniversalTime().AddDays(2),
+                IsRevoked = true,
+                CreatedAt = DateTime.Now.ToUniversalTime()
+            },
+            new()
+            {
+                Token = "test1",
+                DeviceName = "",
+                ExpiryDate = DateTime.Now.ToUniversalTime().AddDays(2),
+                IsRevoked = false,
+                CreatedAt = DateTime.Now.ToUniversalTime()
+            }
+        });
+
+        _db.Users.Add(createdUser);
+        await _db.SaveChangesAsync(_cancellationToken);
+
+        var request = new HttpRequestMessage(HttpMethod.Get, "/auth/newTokens");
+        request.Headers.Add("Cookie", $"refreshToken={oldToken}");
+        // Act
+        var newTokenPairResponse = await client.SendAsync(request, cancellationToken: _cancellationToken);
+
+        // Assert
+        newTokenPairResponse.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity);
+        var response =
+            await newTokenPairResponse.Content.ReadFromJsonAsync<ProblemDetails>(cancellationToken: _cancellationToken);
+        response.Detail.Should().Be("Invalid token");
+
+        var refreshTokens = await _db.RefreshTokens.AsNoTracking().Where(x => x.UserId == createdUser.Id && x.DeviceName == String.Empty).ToListAsync(cancellationToken: _cancellationToken);
+        refreshTokens.Select(x => x.IsRevoked).Should().AllBeEquivalentTo(true);
+    }
+
+    [Fact]
     public async Task Should_validate_tokens()
     {
         // Arrange
         var client = _factory.CreateClient();
-       
+
         // Act
         var newTokenPairResponse = await client.GetAsync($"/auth/newTokens", cancellationToken: _cancellationToken);
 
         // Assert
         newTokenPairResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
-    
+
     private async Task<Guid> GetUserIdFromToken(string accessToken)
     {
         var claimsPrincipal = GetPrincipalFromToken(accessToken);
@@ -103,6 +157,7 @@ public class GetNewTokensPairTests : IClassFixture<TestingWebAppFactory<Program>
         var userId = claimsPrincipal.Claims.First(x => x.Type == "userid").Value;
         return Guid.Parse(userId);
     }
+
     private ClaimsPrincipal GetPrincipalFromToken(string token)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
@@ -132,14 +187,14 @@ public class GetNewTokensPairTests : IClassFixture<TestingWebAppFactory<Program>
             throw new AuthenticationException("One or more validation failures have occurred");
         }
     }
-    
+
     private bool IsJwtWithValidSecurityAlgorithm(SecurityToken validatedToken)
     {
         return (validatedToken is JwtSecurityToken jwtSecurityToken) &&
                jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256,
                    StringComparison.InvariantCultureIgnoreCase);
     }
-    
+
     public Task InitializeAsync()
     {
         _scope = _factory.Services.CreateAsyncScope();
@@ -184,7 +239,7 @@ public class GetNewTokensPairValidatorTests : IClassFixture<TestingWebAppFactory
         result.ShouldHaveValidationErrorFor(x => x.RefreshToken)
             .WithErrorCode("auth_validation_token_required");
     }
-    
+
     public Task InitializeAsync()
     {
         _scope = _factory.Services.CreateAsyncScope();
