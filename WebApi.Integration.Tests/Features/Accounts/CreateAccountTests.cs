@@ -6,14 +6,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using WebApi.Database;
 using WebApi.Features.Accounts.Domain;
 using WebApi.Features.Accounts.Options;
 using WebApi.Features.Accounts.Requests;
 using WebApi.Features.Auth.Services;
 using WebApi.Features.Users.Domain;
-using WebApi.Features.Users.Options;
 using WebApi.Integration.Tests.Features.Users.MockData;
 using WebApi.Integration.Tests.Helpers;
 

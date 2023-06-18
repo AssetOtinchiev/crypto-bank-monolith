@@ -1,4 +1,3 @@
-using System.Net;
 using System.Web;
 
 namespace WebApi.Integration.Tests.Helpers;
