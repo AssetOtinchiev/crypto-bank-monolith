@@ -94,10 +94,8 @@ public class GetAccountsTests : IClassFixture<TestingWebAppFactory<Program>>, IA
 
     public Task InitializeAsync()
     {
-        _scope = _factory.Services.CreateAsyncScope();
-        _db = _scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-        _cancellationToken = new CancellationTokenHelper().GetCancellationToken();
+        new BaseServiceInitializeHelper().Initialize(_factory, ref _scope, ref _db, ref _cancellationToken);
+        
         return Task.CompletedTask;
     }
 
@@ -128,18 +126,16 @@ public class GetAccountsValidatorTests : IClassFixture<TestingWebAppFactory<Prog
     [Theory, MemberData(nameof(RandomGuidMock.Guids), MemberType = typeof(RandomGuidMock))]
     public async Task Should_require_user(Guid userId)
     {
-        var result = await _validator.TestValidateAsync(new GetAccounts.Request(userId));
+        var result = await _validator.TestValidateAsync(new GetAccounts.Request(userId), cancellationToken: _cancellationToken);
         result.ShouldHaveValidationErrorFor(x => x.UserId)
             .WithErrorCode("general_validation_user_not_exist");
     }
 
     public Task InitializeAsync()
     {
-        _scope = _factory.Services.CreateAsyncScope();
-        _db = _scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        new BaseServiceInitializeHelper().Initialize(_factory, ref _scope, ref _db, ref _cancellationToken);
         _validator = new GetAccounts.RequestValidator(_db);
-        _cancellationToken = new CancellationTokenHelper().GetCancellationToken();
-        
+
         return Task.CompletedTask;
     }
 

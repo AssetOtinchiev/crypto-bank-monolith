@@ -188,9 +188,7 @@ public class GetAccountOpenedByPeriodTests : IClassFixture<TestingWebAppFactory<
 
     public Task InitializeAsync()
     {
-        _scope = _factory.Services.CreateAsyncScope();
-        _db = _scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        _cancellationToken = new CancellationTokenHelper().GetCancellationToken();
+        new BaseServiceInitializeHelper().Initialize(_factory, ref _scope, ref _db, ref _cancellationToken);
         
         return Task.CompletedTask;
     }

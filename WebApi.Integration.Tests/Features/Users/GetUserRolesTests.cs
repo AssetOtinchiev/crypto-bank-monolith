@@ -70,9 +70,7 @@ public class GetUserRolesTests : IClassFixture<TestingWebAppFactory<Program>>, I
 
     public Task InitializeAsync()
     {
-        _scope = _factory.Services.CreateAsyncScope();
-        _db = _scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        _cancellationToken = new CancellationTokenHelper().GetCancellationToken();
+        new BaseServiceInitializeHelper().Initialize(_factory, ref _scope, ref _db, ref _cancellationToken);
         
         _usersOptions = _scope.ServiceProvider.GetRequiredService<IOptions<UsersOptions>>().Value;
         return Task.CompletedTask;
@@ -124,12 +122,10 @@ public class GetUserRolesValidatorTests : IClassFixture<TestingWebAppFactory<Pro
 
     public Task InitializeAsync()
     {
-        _scope = _factory.Services.CreateAsyncScope();
-        _db = _scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        new BaseServiceInitializeHelper().Initialize(_factory, ref _scope, ref _db, ref _cancellationToken);
         _validator = new GetUserRoles.RequestValidator(_db);
         _usersOptions = _scope.ServiceProvider.GetRequiredService<IOptions<UsersOptions>>().Value;
-        _cancellationToken = new CancellationTokenHelper().GetCancellationToken();
-        
+
         return Task.CompletedTask;
     }
 

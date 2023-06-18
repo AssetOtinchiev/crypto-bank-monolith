@@ -84,9 +84,7 @@ public class RegisterUserTests : IClassFixture<TestingWebAppFactory<Program>>, I
 
     public Task InitializeAsync()
     {
-        _scope = _factory.Services.CreateAsyncScope();
-        _db = _scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        _cancellationToken = new CancellationTokenHelper().GetCancellationToken();
+        new BaseServiceInitializeHelper().Initialize(_factory, ref _scope, ref _db, ref _cancellationToken);
 
         return Task.CompletedTask;
     }
@@ -193,10 +191,8 @@ public class RegisterValidatorTests : IClassFixture<TestingWebAppFactory<Program
 
     public Task InitializeAsync()
     {
-        _scope = _factory.Services.CreateAsyncScope();
-        _db = _scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        new BaseServiceInitializeHelper().Initialize(_factory, ref _scope, ref _db, ref _cancellationToken);
         _validator = new RegisterUser.RequestValidator(_db);
-        _cancellationToken = new CancellationTokenHelper().GetCancellationToken();
 
         return Task.CompletedTask;
     }

@@ -197,9 +197,7 @@ public class GetNewTokensPairTests : IClassFixture<TestingWebAppFactory<Program>
 
     public Task InitializeAsync()
     {
-        _scope = _factory.Services.CreateAsyncScope();
-        _db = _scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        _cancellationToken = new CancellationTokenHelper().GetCancellationToken();
+        new BaseServiceInitializeHelper().Initialize(_factory, ref _scope, ref _db, ref _cancellationToken);
         _jwtOptions = _scope.ServiceProvider.GetRequiredService<IOptions<AuthOptions>>().Value.Jwt;
         _cookieHelper = new CookieHelper();
         return Task.CompletedTask;
@@ -242,10 +240,8 @@ public class GetNewTokensPairValidatorTests : IClassFixture<TestingWebAppFactory
 
     public Task InitializeAsync()
     {
-        _scope = _factory.Services.CreateAsyncScope();
-        _db = _scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        new BaseServiceInitializeHelper().Initialize(_factory, ref _scope, ref _db, ref _cancellationToken);
         _validator = new GetNewTokensPair.RequestValidator();
-        _cancellationToken = new CancellationTokenHelper().GetCancellationToken();
 
         return Task.CompletedTask;
     }
