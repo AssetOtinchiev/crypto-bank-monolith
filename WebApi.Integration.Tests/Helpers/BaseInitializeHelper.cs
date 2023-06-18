@@ -3,7 +3,7 @@ using WebApi.Database;
 
 namespace WebApi.Integration.Tests.Helpers;
 
-public class BaseServiceInitializeHelper
+public class BaseInitializeHelper
 {
     public void Initialize(TestingWebAppFactory<Program> factory, ref AsyncServiceScope scope,
         ref AppDbContext dbContext, ref CancellationToken cancellationToken)
@@ -11,5 +11,13 @@ public class BaseServiceInitializeHelper
         scope = factory.Services.CreateAsyncScope();
         dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         cancellationToken = new CancellationTokenHelper().GetCancellationToken();
+    }
+
+    public void DisposeDatabase(ref AppDbContext dbContext)
+    {
+        dbContext.Accounts.RemoveRange(dbContext.Accounts);
+        dbContext.RefreshTokens.RemoveRange(dbContext.RefreshTokens);
+        dbContext.Roles.RemoveRange(dbContext.Roles);
+        dbContext.Users.RemoveRange(dbContext.Users);
     }
 }

@@ -94,17 +94,14 @@ public class GetAccountsTests : IClassFixture<TestingWebAppFactory<Program>>, IA
 
     public Task InitializeAsync()
     {
-        new BaseServiceInitializeHelper().Initialize(_factory, ref _scope, ref _db, ref _cancellationToken);
+        new BaseInitializeHelper().Initialize(_factory, ref _scope, ref _db, ref _cancellationToken);
         
         return Task.CompletedTask;
     }
 
     public async Task DisposeAsync()
     {
-        _db.Accounts.RemoveRange(_db.Accounts);
-        _db.RefreshTokens.RemoveRange(_db.RefreshTokens);
-        _db.Roles.RemoveRange(_db.Roles);
-        _db.Users.RemoveRange(_db.Users);
+        new BaseInitializeHelper().DisposeDatabase(ref _db);
         await _db.SaveChangesAsync(_cancellationToken);
         await _scope.DisposeAsync();
     }
@@ -133,7 +130,7 @@ public class GetAccountsValidatorTests : IClassFixture<TestingWebAppFactory<Prog
 
     public Task InitializeAsync()
     {
-        new BaseServiceInitializeHelper().Initialize(_factory, ref _scope, ref _db, ref _cancellationToken);
+        new BaseInitializeHelper().Initialize(_factory, ref _scope, ref _db, ref _cancellationToken);
         _validator = new GetAccounts.RequestValidator(_db);
 
         return Task.CompletedTask;
@@ -141,10 +138,7 @@ public class GetAccountsValidatorTests : IClassFixture<TestingWebAppFactory<Prog
 
     public async Task DisposeAsync()
     {
-        _db.Accounts.RemoveRange(_db.Accounts);
-        _db.RefreshTokens.RemoveRange(_db.RefreshTokens);
-        _db.Roles.RemoveRange(_db.Roles);
-        _db.Users.RemoveRange(_db.Users);
+        new BaseInitializeHelper().DisposeDatabase(ref _db);
         await _db.SaveChangesAsync();
         await _scope.DisposeAsync();
     }
