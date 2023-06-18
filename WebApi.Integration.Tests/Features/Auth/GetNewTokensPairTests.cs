@@ -24,6 +24,7 @@ public class GetNewTokensPairTests : IClassFixture<TestingWebAppFactory<Program>
     private AsyncServiceScope _scope;
     private CancellationToken _cancellationToken;
     private JwtOptions _jwtOptions = new();
+    private CookieHelper _cookieHelper;
 
     public GetNewTokensPairTests(TestingWebAppFactory<Program> factory)
     {
@@ -60,13 +61,21 @@ public class GetNewTokensPairTests : IClassFixture<TestingWebAppFactory<Program>
         client.DefaultRequestHeaders.Add("Set-Cookie", cookies.SingleOrDefault());
 
         // Act
-        var newTokenPairResponse = await client.GetFromJsonAsync<AccessTokenModel>($"/auth/newTokens", cancellationToken: _cancellationToken);
-
+        var newTokenPairResponse = await client.GetAsync($"/auth/newTokens", cancellationToken: _cancellationToken);
+        var newTokenPair = await newTokenPairResponse.Content.ReadFromJsonAsync<AccessTokenModel>(cancellationToken: _cancellationToken);
+        
         // Assert
-        newTokenPairResponse.Should().NotBeNull();
-        accessTokenModel.AccessToken.Should().NotBeEmpty();
+        newTokenPair.Should().NotBeNull();
+        newTokenPair.AccessToken.Should().NotBeEmpty();
 
-        var userId = await GetUserIdFromToken(accessTokenModel.AccessToken);
+        var refreshToken = _cookieHelper.GetCookie(newTokenPairResponse);
+        refreshToken.Should().NotBeNull();
+
+        var savedRefreshToken = _db.RefreshTokens.SingleOrDefault(x => x.Token == refreshToken);
+        savedRefreshToken.Should().NotBeNull();
+        savedRefreshToken.UserId.Should().Be(createdUser.Id);
+            
+        var userId = await GetUserIdFromToken(newTokenPair.AccessToken);
         var user = await _db.Users.FindAsync(userId);
         user.Should().NotBeNull();
         user.Email.Should().Be(email);
@@ -135,7 +144,7 @@ public class GetNewTokensPairTests : IClassFixture<TestingWebAppFactory<Program>
         _db = _scope.ServiceProvider.GetRequiredService<AppDbContext>();
         _cancellationToken = new CancellationTokenHelper().GetCancellationToken();
         _jwtOptions = _scope.ServiceProvider.GetRequiredService<IOptions<AuthOptions>>().Value.Jwt;
-        
+        _cookieHelper = new CookieHelper();
         return Task.CompletedTask;
     }
 
