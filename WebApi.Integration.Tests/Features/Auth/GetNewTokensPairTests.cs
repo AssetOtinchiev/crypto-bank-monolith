@@ -4,12 +4,14 @@ using System.Net.Http.Json;
 using System.Security.Authentication;
 using System.Security.Claims;
 using FluentAssertions;
+using FluentValidation.TestHelper;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using WebApi.Database;
 using WebApi.Features.Auth.Models;
 using WebApi.Features.Auth.Options;
+using WebApi.Features.Auth.Requests;
 using WebApi.Features.Users.Domain;
 using WebApi.Integration.Tests.Features.Users.MockData;
 using WebApi.Integration.Tests.Helpers;
@@ -151,6 +153,52 @@ public class GetNewTokensPairTests : IClassFixture<TestingWebAppFactory<Program>
     public async Task DisposeAsync()
     {
         _db.RefreshTokens.RemoveRange(_db.RefreshTokens);
+        _db.Users.RemoveRange(_db.Users);
+        await _db.SaveChangesAsync(_cancellationToken);
+        await _scope.DisposeAsync();
+    }
+}
+
+public class GetNewTokensPairValidatorTests : IClassFixture<TestingWebAppFactory<Program>>, IAsyncLifetime
+{
+    private readonly TestingWebAppFactory<Program> _factory;
+    private AppDbContext _db;
+    private AsyncServiceScope _scope;
+    private GetNewTokensPair.RequestValidator _validator;
+    private CancellationToken _cancellationToken;
+
+    public GetNewTokensPairValidatorTests(TestingWebAppFactory<Program> factory)
+    {
+        _factory = factory;
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    public async Task Should_require_refresh_token(string refreshToken)
+    {
+        var result = await _validator.TestValidateAsync(new GetNewTokensPair.Request()
+        {
+            RefreshToken = refreshToken
+        }, cancellationToken: _cancellationToken);
+        result.ShouldHaveValidationErrorFor(x => x.RefreshToken)
+            .WithErrorCode("auth_validation_token_required");
+    }
+    
+    public Task InitializeAsync()
+    {
+        _scope = _factory.Services.CreateAsyncScope();
+        _db = _scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        _validator = new GetNewTokensPair.RequestValidator();
+        _cancellationToken = new CancellationTokenHelper().GetCancellationToken();
+
+        return Task.CompletedTask;
+    }
+
+    public async Task DisposeAsync()
+    {
+        _db.RefreshTokens.RemoveRange(_db.RefreshTokens);
+        _db.Roles.RemoveRange(_db.Roles);
         _db.Users.RemoveRange(_db.Users);
         await _db.SaveChangesAsync(_cancellationToken);
         await _scope.DisposeAsync();
