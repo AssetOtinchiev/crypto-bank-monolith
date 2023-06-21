@@ -11,7 +11,7 @@ using WebApi.Features.Accounts.Domain;
 using WebApi.Features.Accounts.Options;
 using WebApi.Features.Accounts.Requests;
 using WebApi.Features.Auth.Services;
-using WebApi.Features.Users.Domain;
+using WebApi.Features.Users.Requests;
 using WebApi.Integration.Tests.Features.Users.MockData;
 using WebApi.Integration.Tests.Helpers;
 
@@ -36,9 +36,8 @@ public class CreateAccountTests : IClassFixture<TestingWebAppFactory<Program>>, 
         // Arrange
         var client = _factory.CreateClient();
 
-        var createdUser = CreateUserMock.CreateUser("test@gmail.com", RoleType.User);
-        _db.Users.Add(createdUser);
-        await _db.SaveChangesAsync(_cancellationToken);
+        var userRequest = new RegisterUser.Request("test@gmail.com", "aaaAAAaa", DateTime.Now.ToUniversalTime());
+        var createdUser = await CreateUserMock.CreateUser(userRequest, _scope, _cancellationToken);
 
         var tokenService = _scope.ServiceProvider.GetRequiredService<TokenService>();
         var tokens = await tokenService.GenerateTokensAsync(createdUser, "test", _cancellationToken);
@@ -69,9 +68,8 @@ public class CreateAccountTests : IClassFixture<TestingWebAppFactory<Program>>, 
         // Arrange
         var client = _factory.CreateClient();
 
-        var createdUser = CreateUserMock.CreateUser("test@gmail.com", RoleType.User);
-        _db.Users.Add(createdUser);
-        await _db.SaveChangesAsync(_cancellationToken);
+        var userRequest = new RegisterUser.Request("test@gmail.com", "aaaAAAaa", DateTime.Now.ToUniversalTime());
+        var createdUser = await CreateUserMock.CreateUser(userRequest, _scope, _cancellationToken);
 
         var accounts = new List<Account>();
         for (int i = 0; i < _accountsOptions.MaxAvailableAccounts; i++)
@@ -170,9 +168,8 @@ public class CreateAccountValidatorTests : IClassFixture<TestingWebAppFactory<Pr
     [InlineData(" ")]
     public async Task Should_require_currency(string currency)
     {
-        var createdUser = CreateUserMock.CreateUser("test@gmail.com", RoleType.User);
-        _db.Users.Add(createdUser);
-        await _db.SaveChangesAsync(_cancellationToken);
+        var userRequest = new RegisterUser.Request("test@gmail.com", "aaaAAAaa", DateTime.Now.ToUniversalTime());
+        var createdUser = await CreateUserMock.CreateUser(userRequest, _scope, _cancellationToken);
 
         var result = await _validator.TestValidateAsync(new CreateAccount.Request(createdUser.Id, currency, 1),
             cancellationToken: _cancellationToken);
@@ -185,9 +182,8 @@ public class CreateAccountValidatorTests : IClassFixture<TestingWebAppFactory<Pr
     [InlineData("a")]
     public async Task Should_validate_currency_length(string currency)
     {
-        var createdUser = CreateUserMock.CreateUser("test@gmail.com", RoleType.User);
-        _db.Users.Add(createdUser);
-        await _db.SaveChangesAsync(_cancellationToken);
+        var userRequest = new RegisterUser.Request("test@gmail.com", "aaaAAAaa", DateTime.Now.ToUniversalTime());
+        var createdUser = await CreateUserMock.CreateUser(userRequest, _scope, _cancellationToken);
 
         var result = await _validator.TestValidateAsync(new CreateAccount.Request(createdUser.Id, currency, 1),
             cancellationToken: _cancellationToken);
@@ -200,9 +196,8 @@ public class CreateAccountValidatorTests : IClassFixture<TestingWebAppFactory<Pr
     [InlineData(-1)]
     public async Task Should_validate_amount(decimal amount)
     {
-        var createdUser = CreateUserMock.CreateUser("test@gmail.com", RoleType.User);
-        _db.Users.Add(createdUser);
-        await _db.SaveChangesAsync(_cancellationToken);
+        var userRequest = new RegisterUser.Request("test@gmail.com", "aaaAAAaa", DateTime.Now.ToUniversalTime());
+        var createdUser = await CreateUserMock.CreateUser(userRequest, _scope, _cancellationToken);
 
         var result = await _validator.TestValidateAsync(new CreateAccount.Request(createdUser.Id, "btc", amount),
             cancellationToken: _cancellationToken);

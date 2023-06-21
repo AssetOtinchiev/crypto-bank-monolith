@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using WebApi.Database;
 using WebApi.Features.Users.Domain;
 using WebApi.Features.Users.Requests;
+using WebApi.Integration.Tests.Features.Users.MockData;
 using WebApi.Integration.Tests.Helpers;
 using WebApi.Shared;
 
@@ -60,16 +61,10 @@ public class RegisterUserTests : IClassFixture<TestingWebAppFactory<Program>>, I
         // Arrange
         var client = _factory.CreateClient();
         var email = "test@test.com";
-        _db.Users.Add(new User()
-        {
-            Email = email,
-            Password = "123123",
-            RegisteredAt = DateTime.UtcNow,
-            DateOfBirth = DateTime.UtcNow
-        });
-        await _db.SaveChangesAsync(_cancellationToken);
-
         var dateBirth = DateTime.UtcNow.AddYears(-20);
+        var userRequest = new RegisterUser.Request(email, "aaaAAAaaa", dateBirth);
+        await CreateUserMock.CreateUser(userRequest, _scope, _cancellationToken);
+
         // Act
         var result = await client.PostAsJsonAsync("/users", new
         {
@@ -148,16 +143,8 @@ public class RegisterValidatorTests : IClassFixture<TestingWebAppFactory<Program
     {
         const string email = "test@test.com";
 
-        var existingUser = new User
-        {
-            Email = email,
-            Password = "123",
-            RegisteredAt = DateTime.UtcNow,
-            DateOfBirth = new DateTime(2000, 01, 31).ToUniversalTime(),
-        };
-
-        _db.Users.Add(existingUser);
-        await _db.SaveChangesAsync(_cancellationToken);
+        var userRequest = new RegisterUser.Request(email, "aaaAAAaaa", DateTime.Now.ToUniversalTime());
+        await CreateUserMock.CreateUser(userRequest, _scope, _cancellationToken);
 
         var result = await _validator.TestValidateAsync(new
                 RegisterUser.Request(email, "password", new DateTime(2000, 01, 31).ToUniversalTime()),

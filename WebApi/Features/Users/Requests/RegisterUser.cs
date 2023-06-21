@@ -1,13 +1,10 @@
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using WebApi.Database;
 using WebApi.Features.Users.Domain;
 using WebApi.Features.Users.Models;
-using WebApi.Features.Users.Options;
-using WebApi.Shared;
-
+using WebApi.Features.Users.Services;
 using static WebApi.Features.Users.Errors.Codes.UserValidationErrors;
 
 namespace WebApi.Features.Users.Requests;
@@ -28,7 +25,7 @@ public static class RegisterUser
                 .WithErrorCode(PasswordRequired)
                 .MinimumLength(7)
                 .WithErrorCode(PasswordShort);
-            
+
             RuleFor(x => x.DateOfBirth)
                 .NotEmpty()
                 .WithErrorCode(DateBirthRequired);
@@ -52,55 +49,21 @@ public static class RegisterUser
 
     public class RequestHandler : IRequestHandler<Request, Response>
     {
-        private readonly AppDbContext _dbContext;
-        private readonly UsersOptions _usersOptions;
-        private readonly PasswordHelper _passwordHelper;
+        private readonly UserRegistrationService _userRegistrationService;
 
-        public RequestHandler(AppDbContext dbContext, IOptions<UsersOptions> usersOptions, PasswordHelper passwordHelper)
+        public RequestHandler(UserRegistrationService userRegistrationService)
         {
-            _dbContext = dbContext;
-            _passwordHelper = passwordHelper;
-            _usersOptions = usersOptions.Value;
+            _userRegistrationService = userRegistrationService;
         }
 
         public async Task<Response> Handle(Request request, CancellationToken cancellationToken)
         {
-            var passwordHex = _passwordHelper.GetHashUsingArgon2(request.Password);
-            var role = RoleType.User;
-            var isExistAdmin = await _dbContext.Roles.AnyAsync(x => x.Name == RoleType.Administrator, cancellationToken);
-            if (!isExistAdmin && request.Email == _usersOptions.AdministratorEmail)
-            {
-                role = RoleType.Administrator;
-            }
-            
-            var user = ToUser(request.Email, request.DateOfBirth, passwordHex, role);
-            await _dbContext.Users.AddAsync(user, cancellationToken);
-            await _dbContext.SaveChangesAsync(cancellationToken);
-
-            return new Response(ToUserModel(user));
+            var user = await _userRegistrationService.Register(request, cancellationToken);
+            var userModel = ToUserModel(user);
+            return new Response(userModel);
         }
     }
-
-    private static User ToUser(string email, DateTime? dateOfBirth, string passwordHex, RoleType role)
-    {
-        return new User()
-        {
-            Id = Guid.NewGuid(),
-            Password = passwordHex,
-            Email = email,
-            DateOfBirth = dateOfBirth.Value,
-            RegisteredAt = DateTime.Now.ToUniversalTime(),
-            Roles = new List<Role>()
-            {
-                new()
-                {
-                    Name = role,
-                    CreatedAt = DateTime.Now.ToUniversalTime()
-                }
-            }
-        };
-    }
-
+    
     private static UserModel ToUserModel(User user)
     {
         return new UserModel()

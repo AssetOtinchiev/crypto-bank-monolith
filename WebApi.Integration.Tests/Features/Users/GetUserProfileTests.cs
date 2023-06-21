@@ -33,10 +33,9 @@ public class GetUserProfileTests : IClassFixture<TestingWebAppFactory<Program>>,
     {
         // Arrange
         var client = _factory.CreateClient();
-
-        var createdUser = CreateUserMock.CreateUser(_usersOptions.AdministratorEmail, RoleType.Administrator);
-        _db.Users.Add(createdUser);
-        await _db.SaveChangesAsync(_cancellationToken);
+        var date = new DateTime(2000, 01, 31).ToUniversalTime();
+        var userRequest = new RegisterUser.Request(_usersOptions.AdministratorEmail, "aaaAAAaaa", date);
+        var createdUser = await CreateUserMock.CreateUser(userRequest, _scope, _cancellationToken);
 
         var tokenService = _scope.ServiceProvider.GetRequiredService<TokenService>();
         var tokens = await tokenService.GenerateTokensAsync(createdUser, "test", _cancellationToken);
@@ -48,7 +47,7 @@ public class GetUserProfileTests : IClassFixture<TestingWebAppFactory<Program>>,
         // Assert
         response.Should().NotBeNull();
         response.Email.Should().MatchEquivalentOf(createdUser.Email);
-        response.DateOfBirth.Should().Be(new DateTime(2000, 01, 31).ToUniversalTime());
+        response.DateOfBirth.Should().Be(date);
     }
 
     [Fact]
@@ -98,9 +97,8 @@ public class GetUserProfileValidatorTests : IClassFixture<TestingWebAppFactory<P
     [Fact]
     public async Task Should_validate_correct_request()
     {
-        var createdUser = CreateUserMock.CreateUser(_usersOptions.AdministratorEmail, RoleType.Administrator);
-        _db.Users.Add(createdUser);
-        await _db.SaveChangesAsync(_cancellationToken);
+        var userRequest = new RegisterUser.Request(_usersOptions.AdministratorEmail, "aaaAAAaaa", DateTime.Now.ToUniversalTime());
+        var createdUser = await CreateUserMock.CreateUser(userRequest, _scope, _cancellationToken);
 
         var result = await _validator.TestValidateAsync(
             new GetUserProfile.Request(createdUser.Id), cancellationToken: _cancellationToken);

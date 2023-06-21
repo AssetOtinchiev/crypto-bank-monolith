@@ -15,10 +15,9 @@ using WebApi.Features.Auth.Domain;
 using WebApi.Features.Auth.Models;
 using WebApi.Features.Auth.Options;
 using WebApi.Features.Auth.Requests;
-using WebApi.Features.Users.Domain;
+using WebApi.Features.Users.Requests;
 using WebApi.Integration.Tests.Features.Users.MockData;
 using WebApi.Integration.Tests.Helpers;
-using WebApi.Shared;
 
 namespace WebApi.Integration.Tests.Features.Auth;
 
@@ -44,11 +43,8 @@ public class GetNewTokensPairTests : IClassFixture<TestingWebAppFactory<Program>
 
         var password = "qwerty123456A!";
         var email = "test@test.com";
-        var passwordHelper = _scope.ServiceProvider.GetRequiredService<PasswordHelper>();
-        var hashPassword = passwordHelper.GetHashUsingArgon2(password);
-        var createdUser = CreateUserMock.CreateUser(email, RoleType.User, hashPassword);
-        _db.Users.Add(createdUser);
-        await _db.SaveChangesAsync(_cancellationToken);
+        var userRequest = new RegisterUser.Request(email, password, DateTime.Now.ToUniversalTime());
+        var createdUser = await CreateUserMock.CreateUser(userRequest, _scope, _cancellationToken);
 
         var response = await client.PostAsJsonAsync("/auth", new
         {
@@ -94,9 +90,8 @@ public class GetNewTokensPairTests : IClassFixture<TestingWebAppFactory<Program>
 
         var password = "qwerty123456A!";
         var email = "test@test.com";
-        var passwordHelper = _scope.ServiceProvider.GetRequiredService<PasswordHelper>();
-        var hashPassword = passwordHelper.GetHashUsingArgon2(password);
-        var createdUser = CreateUserMock.CreateUser(email, RoleType.User, hashPassword);
+        var userRequest = new RegisterUser.Request(email, password, DateTime.Now.ToUniversalTime());
+        var createdUser = await CreateUserMock.CreateUser(userRequest, _scope, _cancellationToken);
 
         var oldToken = "test";
         createdUser.RefreshTokens.AddRange(new List<RefreshToken>()
@@ -118,8 +113,7 @@ public class GetNewTokensPairTests : IClassFixture<TestingWebAppFactory<Program>
                 CreatedAt = DateTime.Now.ToUniversalTime()
             }
         });
-
-        _db.Users.Add(createdUser);
+        
         await _db.SaveChangesAsync(_cancellationToken);
 
         var request = new HttpRequestMessage(HttpMethod.Get, "/auth/newTokens");

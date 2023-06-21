@@ -6,10 +6,9 @@ using Microsoft.Extensions.DependencyInjection;
 using WebApi.Database;
 using WebApi.Features.Auth.Models;
 using WebApi.Features.Auth.Requests;
-using WebApi.Features.Users.Domain;
+using WebApi.Features.Users.Requests;
 using WebApi.Integration.Tests.Features.Users.MockData;
 using WebApi.Integration.Tests.Helpers;
-using WebApi.Shared;
 
 namespace WebApi.Integration.Tests.Features.Auth;
 
@@ -32,11 +31,8 @@ public class AuthenticateTests : IClassFixture<TestingWebAppFactory<Program>>, I
         var client = _factory.CreateClient();
         var password = "qwerty123456A!";
         var email = "test@test.com";
-        var passwordHelper = _scope.ServiceProvider.GetRequiredService<PasswordHelper>();
-        var hashPassword = passwordHelper.GetHashUsingArgon2(password);
-        var createdUser = CreateUserMock.CreateUser(email, RoleType.User, hashPassword);
-        _db.Users.Add(createdUser);
-        await _db.SaveChangesAsync(_cancellationToken);
+        var userRequest = new RegisterUser.Request(email, password, DateTime.Now.ToUniversalTime());
+        await CreateUserMock.CreateUser(userRequest, _scope, _cancellationToken);
 
         // Act
         var response = await client.PostAsJsonAsync("/auth", new
@@ -59,13 +55,8 @@ public class AuthenticateTests : IClassFixture<TestingWebAppFactory<Program>>, I
     {
         // Arrange
         var client = _factory.CreateClient();
-        (await client.PostAsJsonAsync("/users", new
-            {
-                Email = "test@test.com",
-                Password = "qwerty123456A!",
-                DateOfBirth = DateTime.UtcNow.AddYears(-20),
-            }, cancellationToken: _cancellationToken))
-            .EnsureSuccessStatusCode();
+        var userRequest = new RegisterUser.Request("test@gmail.com", "qwerty123456A!", DateTime.Now.ToUniversalTime());
+        await CreateUserMock.CreateUser(userRequest, _scope, _cancellationToken);
 
         // Act
         var response = await client.PostAsJsonAsync("/auth", new

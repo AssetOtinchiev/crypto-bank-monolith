@@ -9,6 +9,7 @@ using WebApi.Features.Accounts.Domain;
 using WebApi.Features.Accounts.Models;
 using WebApi.Features.Auth.Services;
 using WebApi.Features.Users.Domain;
+using WebApi.Features.Users.Requests;
 using WebApi.Integration.Tests.Features.Users.MockData;
 using WebApi.Integration.Tests.Helpers;
 
@@ -32,11 +33,12 @@ public class GetAccountOpenedByPeriodTests : IClassFixture<TestingWebAppFactory<
         // Arrange
         var client = _factory.CreateClient();
 
-        var createdUser = CreateUserMock.CreateUser("test@gmail.com", RoleType.Analyst);
+        var userRequest = new RegisterUser.Request("test@gmail.com", "aaaAAAaa", DateTime.Now.ToUniversalTime());
+        var createdUser = await CreateUserMock.CreateUser(userRequest, _scope, _cancellationToken, RoleType.Analyst);
+        
         createdUser.Accounts.AddRange(accounts);
-        _db.Users.Add(createdUser);
-
         await _db.SaveChangesAsync(_cancellationToken);
+        
         var tokenService = _scope.ServiceProvider.GetRequiredService<TokenService>();
         var tokens = await tokenService.GenerateTokensAsync(createdUser, "test", _cancellationToken);
         client.DefaultRequestHeaders.Add("Authorization", $"Bearer {tokens.accessToken}");
@@ -74,9 +76,8 @@ public class GetAccountOpenedByPeriodTests : IClassFixture<TestingWebAppFactory<
         // Arrange
         var client = _factory.CreateClient();
 
-        var createdUser = CreateUserMock.CreateUser("test@gmail.com", RoleType.User);
-        createdUser.Accounts.AddRange(accounts);
-        _db.Users.Add(createdUser);
+        var userRequest = new RegisterUser.Request("test@gmail.com", "aaaAAAaa", DateTime.Now.ToUniversalTime());
+        var createdUser = await CreateUserMock.CreateUser(userRequest, _scope, _cancellationToken);
 
         await _db.SaveChangesAsync();
         var tokenService = _scope.ServiceProvider.GetRequiredService<TokenService>();

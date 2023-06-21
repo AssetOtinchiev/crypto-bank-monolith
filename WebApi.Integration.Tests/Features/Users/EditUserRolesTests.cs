@@ -34,9 +34,8 @@ public class EditUserRolesTests : IClassFixture<TestingWebAppFactory<Program>>, 
         // Arrange
         var client = _factory.CreateClient();
 
-        var createdUser = CreateUserMock.CreateUser(_usersOptions.AdministratorEmail, RoleType.Administrator);
-        _db.Users.Add(createdUser);
-        await _db.SaveChangesAsync(_cancellationToken);
+        var userRequest = new RegisterUser.Request(_usersOptions.AdministratorEmail, "aaaAAAaaa", DateTime.Now.ToUniversalTime());
+        var createdUser = await CreateUserMock.CreateUser(userRequest, _scope, _cancellationToken);
 
         var tokenService = _scope.ServiceProvider.GetRequiredService<TokenService>();
         var tokens = await tokenService.GenerateTokensAsync(createdUser, "test", _cancellationToken);
@@ -116,9 +115,8 @@ public class EditUserRolesValidatorTests : IClassFixture<TestingWebAppFactory<Pr
     [Fact]
     public async Task Should_validate_correct_request()
     {
-        var createdUser = CreateUserMock.CreateUser(_usersOptions.AdministratorEmail, RoleType.Administrator);
-        _db.Users.Add(createdUser);
-        await _db.SaveChangesAsync(_cancellationToken);
+        var userRequest = new RegisterUser.Request(_usersOptions.AdministratorEmail, "aaaAAAaaa", DateTime.Now.ToUniversalTime());
+        var createdUser = await CreateUserMock.CreateUser(userRequest, _scope, _cancellationToken);
 
         var result = await _validator.TestValidateAsync(
             new EditUserRoles.Request(new[]
@@ -132,9 +130,8 @@ public class EditUserRolesValidatorTests : IClassFixture<TestingWebAppFactory<Pr
     [Fact]
     public async Task Should_require_roles()
     {
-        var createdUser = CreateUserMock.CreateUser(_usersOptions.AdministratorEmail, RoleType.Administrator);
-        _db.Users.Add(createdUser);
-        await _db.SaveChangesAsync(_cancellationToken);
+        var userRequest = new RegisterUser.Request(_usersOptions.AdministratorEmail, "aaaAAAaaa", DateTime.Now.ToUniversalTime());
+        var createdUser = await CreateUserMock.CreateUser(userRequest, _scope, _cancellationToken);
 
         var result = await _validator.TestValidateAsync(
             new EditUserRoles.Request(Array.Empty<RoleType>(), createdUser.Id), cancellationToken: _cancellationToken);

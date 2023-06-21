@@ -34,9 +34,8 @@ public class GetUserRolesTests : IClassFixture<TestingWebAppFactory<Program>>, I
         // Arrange
         var client = _factory.CreateClient();
 
-        var createdUser = CreateUserMock.CreateUser(_usersOptions.AdministratorEmail, RoleType.Administrator);
-        _db.Users.Add(createdUser);
-        await _db.SaveChangesAsync(_cancellationToken);
+        var userRequest = new RegisterUser.Request(_usersOptions.AdministratorEmail, "aaaAAAaaa", DateTime.Now.ToUniversalTime());
+        var createdUser = await CreateUserMock.CreateUser(userRequest, _scope, _cancellationToken);
 
         var tokenService = _scope.ServiceProvider.GetRequiredService<TokenService>();
         var tokens = await tokenService.GenerateTokensAsync(createdUser, "test", _cancellationToken);
@@ -104,9 +103,8 @@ public class GetUserRolesValidatorTests : IClassFixture<TestingWebAppFactory<Pro
     [Fact]
     public async Task Should_validate_correct_request()
     {
-        var createdUser = CreateUserMock.CreateUser(_usersOptions.AdministratorEmail, RoleType.Administrator);
-        _db.Users.Add(createdUser);
-        await _db.SaveChangesAsync(_cancellationToken);
+        var userRequest = new RegisterUser.Request(_usersOptions.AdministratorEmail, "aaaAAAaaa", DateTime.Now.ToUniversalTime());
+        var createdUser = await CreateUserMock.CreateUser(userRequest, _scope, _cancellationToken);
 
         var result = await _validator.TestValidateAsync(
             new GetUserRoles.Request(createdUser.Id), cancellationToken: _cancellationToken);
