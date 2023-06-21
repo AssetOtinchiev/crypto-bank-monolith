@@ -1,8 +1,8 @@
 namespace WebApi.Integration.Tests.Helpers;
 
-public class CancellationTokenHelper
+public static class CancellationTokenHelper
 {
-    public CancellationToken GetCancellationToken()
+    public static CancellationToken GetCancellationToken()
     {
         var cts = new CancellationTokenSource();
         cts.CancelAfter(TimeSpan.FromSeconds(60));

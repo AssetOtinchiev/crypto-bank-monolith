@@ -190,14 +190,14 @@ public class GetAccountOpenedByPeriodTests : IClassFixture<TestingWebAppFactory<
 
     public Task InitializeAsync()
     {
-        new BaseInitializeHelper().Initialize(_factory, ref _scope, ref _db, ref _cancellationToken);
+        BaseInitializeHelper.Initialize(_factory, ref _scope, ref _db, ref _cancellationToken);
 
         return Task.CompletedTask;
     }
 
     public async Task DisposeAsync()
     {
-        new BaseInitializeHelper().DisposeDatabase(ref _db);
+        BaseInitializeHelper.DisposeDatabase(ref _db);
         await _db.SaveChangesAsync(_cancellationToken);
         await _scope.DisposeAsync();
     }

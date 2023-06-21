@@ -68,14 +68,14 @@ public class GetUserProfileTests : IClassFixture<TestingWebAppFactory<Program>>,
 
     public Task InitializeAsync()
     {
-        new BaseInitializeHelper().Initialize(_factory, ref _scope, ref _db, ref _cancellationToken);
+        BaseInitializeHelper.Initialize(_factory, ref _scope, ref _db, ref _cancellationToken);
         _usersOptions = _scope.ServiceProvider.GetRequiredService<IOptions<UsersOptions>>().Value;
         return Task.CompletedTask;
     }
 
     public async Task DisposeAsync()
     {
-        new BaseInitializeHelper().DisposeDatabase(ref _db);
+        BaseInitializeHelper.DisposeDatabase(ref _db);
         await _db.SaveChangesAsync(_cancellationToken);
         await _scope.DisposeAsync();
     }
@@ -118,7 +118,7 @@ public class GetUserProfileValidatorTests : IClassFixture<TestingWebAppFactory<P
 
     public Task InitializeAsync()
     {
-        new BaseInitializeHelper().Initialize(_factory, ref _scope, ref _db, ref _cancellationToken);
+        BaseInitializeHelper.Initialize(_factory, ref _scope, ref _db, ref _cancellationToken);
         _validator = new GetUserProfile.RequestValidator(_db);
         _usersOptions = _scope.ServiceProvider.GetRequiredService<IOptions<UsersOptions>>().Value;
 
@@ -127,7 +127,7 @@ public class GetUserProfileValidatorTests : IClassFixture<TestingWebAppFactory<P
 
     public async Task DisposeAsync()
     {
-        new BaseInitializeHelper().DisposeDatabase(ref _db);
+        BaseInitializeHelper.DisposeDatabase(ref _db);
         await _db.SaveChangesAsync(_cancellationToken);
         await _scope.DisposeAsync();
     }

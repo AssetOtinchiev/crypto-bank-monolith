@@ -199,7 +199,7 @@ public class GetNewTokensPairTests : IClassFixture<TestingWebAppFactory<Program>
 
     public Task InitializeAsync()
     {
-        new BaseInitializeHelper().Initialize(_factory, ref _scope, ref _db, ref _cancellationToken);
+         BaseInitializeHelper.Initialize(_factory, ref _scope, ref _db, ref _cancellationToken);
         _jwtOptions = _scope.ServiceProvider.GetRequiredService<IOptions<AuthOptions>>().Value.Jwt;
         _cookieHelper = new CookieHelper();
         return Task.CompletedTask;
@@ -207,7 +207,7 @@ public class GetNewTokensPairTests : IClassFixture<TestingWebAppFactory<Program>
 
     public async Task DisposeAsync()
     {
-        new BaseInitializeHelper().DisposeDatabase(ref _db);
+        BaseInitializeHelper.DisposeDatabase(ref _db);
         await _db.SaveChangesAsync(_cancellationToken);
         await _scope.DisposeAsync();
     }
@@ -241,7 +241,7 @@ public class GetNewTokensPairValidatorTests : IClassFixture<TestingWebAppFactory
 
     public Task InitializeAsync()
     {
-        new BaseInitializeHelper().Initialize(_factory, ref _scope, ref _db, ref _cancellationToken);
+         BaseInitializeHelper.Initialize(_factory, ref _scope, ref _db, ref _cancellationToken);
         _validator = new GetNewTokensPair.RequestValidator();
 
         return Task.CompletedTask;
@@ -249,7 +249,7 @@ public class GetNewTokensPairValidatorTests : IClassFixture<TestingWebAppFactory
 
     public async Task DisposeAsync()
     {
-        new BaseInitializeHelper().DisposeDatabase(ref _db);
+        BaseInitializeHelper.DisposeDatabase(ref _db);
         await _db.SaveChangesAsync(_cancellationToken);
         await _scope.DisposeAsync();
     }

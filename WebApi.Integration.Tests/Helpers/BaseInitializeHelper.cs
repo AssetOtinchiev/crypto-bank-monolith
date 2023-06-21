@@ -3,17 +3,17 @@ using WebApi.Database;
 
 namespace WebApi.Integration.Tests.Helpers;
 
-public class BaseInitializeHelper
+public static class BaseInitializeHelper
 {
-    public void Initialize(TestingWebAppFactory<Program> factory, ref AsyncServiceScope scope,
+    public static void Initialize(TestingWebAppFactory<Program> factory, ref AsyncServiceScope scope,
         ref AppDbContext dbContext, ref CancellationToken cancellationToken)
     {
         scope = factory.Services.CreateAsyncScope();
         dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        cancellationToken = new CancellationTokenHelper().GetCancellationToken();
+        cancellationToken =  CancellationTokenHelper.GetCancellationToken();
     }
 
-    public void DisposeDatabase(ref AppDbContext dbContext)
+    public static void DisposeDatabase(ref AppDbContext dbContext)
     {
         dbContext.Accounts.RemoveRange(dbContext.Accounts);
         dbContext.RefreshTokens.RemoveRange(dbContext.RefreshTokens);

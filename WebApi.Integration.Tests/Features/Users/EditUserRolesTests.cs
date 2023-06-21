@@ -85,7 +85,7 @@ public class EditUserRolesTests : IClassFixture<TestingWebAppFactory<Program>>, 
 
     public Task InitializeAsync()
     {
-        new BaseInitializeHelper().Initialize(_factory, ref _scope, ref _db, ref _cancellationToken);
+        BaseInitializeHelper.Initialize(_factory, ref _scope, ref _db, ref _cancellationToken);
 
         _usersOptions = _scope.ServiceProvider.GetRequiredService<IOptions<UsersOptions>>().Value;
         return Task.CompletedTask;
@@ -93,7 +93,7 @@ public class EditUserRolesTests : IClassFixture<TestingWebAppFactory<Program>>, 
 
     public async Task DisposeAsync()
     {
-        new BaseInitializeHelper().DisposeDatabase(ref _db);
+        BaseInitializeHelper.DisposeDatabase(ref _db);
         await _db.SaveChangesAsync(_cancellationToken);
         await _scope.DisposeAsync();
     }
@@ -158,7 +158,7 @@ public class EditUserRolesValidatorTests : IClassFixture<TestingWebAppFactory<Pr
 
     public Task InitializeAsync()
     {
-        new BaseInitializeHelper().Initialize(_factory, ref _scope, ref _db, ref _cancellationToken);
+        BaseInitializeHelper.Initialize(_factory, ref _scope, ref _db, ref _cancellationToken);
         _validator = new EditUserRoles.RequestValidator(_db);
         _usersOptions = _scope.ServiceProvider.GetRequiredService<IOptions<UsersOptions>>().Value;
 
@@ -167,7 +167,7 @@ public class EditUserRolesValidatorTests : IClassFixture<TestingWebAppFactory<Pr
 
     public async Task DisposeAsync()
     {
-        new BaseInitializeHelper().DisposeDatabase(ref _db);
+        BaseInitializeHelper.DisposeDatabase(ref _db);
         await _db.SaveChangesAsync(_cancellationToken);
         await _scope.DisposeAsync();
     }
