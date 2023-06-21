@@ -67,7 +67,7 @@ public class GetNewTokensPair
                     await _dbContext.SaveChangesAsync(cancellationToken);
                 }
 
-                throw new ValidationErrorsException($"{nameof(request.RefreshToken)}", "Invalid token", TokenInvalid);
+                throw new LogicConflictException("Invalid token", TokenInvalid);
             }
 
             var (accessToken, generatedRefreshToken) =
