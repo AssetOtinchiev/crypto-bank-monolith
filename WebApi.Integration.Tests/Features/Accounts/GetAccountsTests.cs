@@ -32,7 +32,7 @@ public class GetAccountsTests : IClassFixture<TestingWebAppFactory<Program>>, IA
         // Arrange
         var client = _factory.CreateClient();
 
-        var createdUser = CreateUserMock.CreateUser("test@gmail.com", RoleType.User);
+        var createdUser = CreateUserHelper.CreateUser("test@gmail.com", RoleType.User);
         var account = new Account()
         {
             Amount = 10,
@@ -46,9 +46,7 @@ public class GetAccountsTests : IClassFixture<TestingWebAppFactory<Program>>, IA
         _db.Users.Add(fakeUser);
 
         await _db.SaveChangesAsync(_cancellationToken);
-        var tokenService = _scope.ServiceProvider.GetRequiredService<TokenService>();
-        var tokens = await tokenService.GenerateTokensAsync(createdUser, "test", _cancellationToken);
-        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {tokens.accessToken}");
+        await CreateUserHelper.FillAuthToken(client, _scope, createdUser, _cancellationToken);
 
         // Act
         var response =
@@ -89,7 +87,7 @@ public class GetAccountsTests : IClassFixture<TestingWebAppFactory<Program>>, IA
             Currency = "eth",
             DateOfOpening = DateTime.Now.ToUniversalTime()
         };
-        var createdFakeUser = CreateUserMock.CreateUser("testFake@gmail.com", RoleType.User);
+        var createdFakeUser = CreateUserHelper.CreateUser("testFake@gmail.com", RoleType.User);
         createdFakeUser.Accounts.Add(fakeAccount);
         return createdFakeUser;
     }

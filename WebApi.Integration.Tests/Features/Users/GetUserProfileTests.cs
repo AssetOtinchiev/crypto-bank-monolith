@@ -35,11 +35,9 @@ public class GetUserProfileTests : IClassFixture<TestingWebAppFactory<Program>>,
         var client = _factory.CreateClient();
         var date = new DateTime(2000, 01, 31).ToUniversalTime();
         var userRequest = new RegisterUser.Request(_usersOptions.AdministratorEmail, "aaaAAAaaa", date);
-        var createdUser = await CreateUserMock.CreateUser(userRequest, _scope, _cancellationToken);
+        var createdUser = await CreateUserHelper.CreateUser(userRequest, _scope, _cancellationToken);
 
-        var tokenService = _scope.ServiceProvider.GetRequiredService<TokenService>();
-        var tokens = await tokenService.GenerateTokensAsync(createdUser, "test", _cancellationToken);
-        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {tokens.accessToken}");
+        await CreateUserHelper.FillAuthToken(client, _scope, createdUser, _cancellationToken);
 
         // Act
         var response = await client.GetFromJsonAsync<UserModel>($"/users", cancellationToken: _cancellationToken);
@@ -98,7 +96,7 @@ public class GetUserProfileValidatorTests : IClassFixture<TestingWebAppFactory<P
     public async Task Should_validate_correct_request()
     {
         var userRequest = new RegisterUser.Request(_usersOptions.AdministratorEmail, "aaaAAAaaa", DateTime.Now.ToUniversalTime());
-        var createdUser = await CreateUserMock.CreateUser(userRequest, _scope, _cancellationToken);
+        var createdUser = await CreateUserHelper.CreateUser(userRequest, _scope, _cancellationToken);
 
         var result = await _validator.TestValidateAsync(
             new GetUserProfile.Request(createdUser.Id), cancellationToken: _cancellationToken);

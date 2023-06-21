@@ -35,11 +35,9 @@ public class EditUserRolesTests : IClassFixture<TestingWebAppFactory<Program>>, 
         var client = _factory.CreateClient();
 
         var userRequest = new RegisterUser.Request(_usersOptions.AdministratorEmail, "aaaAAAaaa", DateTime.Now.ToUniversalTime());
-        var createdUser = await CreateUserMock.CreateUser(userRequest, _scope, _cancellationToken);
+        var createdUser = await CreateUserHelper.CreateUser(userRequest, _scope, _cancellationToken);
 
-        var tokenService = _scope.ServiceProvider.GetRequiredService<TokenService>();
-        var tokens = await tokenService.GenerateTokensAsync(createdUser, "test", _cancellationToken);
-        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {tokens.accessToken}");
+        await CreateUserHelper.FillAuthToken(client, _scope, createdUser, _cancellationToken);
 
         var userRoles = new[]
         {
@@ -116,7 +114,7 @@ public class EditUserRolesValidatorTests : IClassFixture<TestingWebAppFactory<Pr
     public async Task Should_validate_correct_request()
     {
         var userRequest = new RegisterUser.Request(_usersOptions.AdministratorEmail, "aaaAAAaaa", DateTime.Now.ToUniversalTime());
-        var createdUser = await CreateUserMock.CreateUser(userRequest, _scope, _cancellationToken);
+        var createdUser = await CreateUserHelper.CreateUser(userRequest, _scope, _cancellationToken);
 
         var result = await _validator.TestValidateAsync(
             new EditUserRoles.Request(new[]
@@ -131,7 +129,7 @@ public class EditUserRolesValidatorTests : IClassFixture<TestingWebAppFactory<Pr
     public async Task Should_require_roles()
     {
         var userRequest = new RegisterUser.Request(_usersOptions.AdministratorEmail, "aaaAAAaaa", DateTime.Now.ToUniversalTime());
-        var createdUser = await CreateUserMock.CreateUser(userRequest, _scope, _cancellationToken);
+        var createdUser = await CreateUserHelper.CreateUser(userRequest, _scope, _cancellationToken);
 
         var result = await _validator.TestValidateAsync(
             new EditUserRoles.Request(Array.Empty<RoleType>(), createdUser.Id), cancellationToken: _cancellationToken);

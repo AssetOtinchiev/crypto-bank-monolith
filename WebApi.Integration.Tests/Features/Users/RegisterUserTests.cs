@@ -63,7 +63,7 @@ public class RegisterUserTests : IClassFixture<TestingWebAppFactory<Program>>, I
         var email = "test@test.com";
         var dateBirth = DateTime.UtcNow.AddYears(-20);
         var userRequest = new RegisterUser.Request(email, "aaaAAAaaa", dateBirth);
-        await CreateUserMock.CreateUser(userRequest, _scope, _cancellationToken);
+        await CreateUserHelper.CreateUser(userRequest, _scope, _cancellationToken);
 
         // Act
         var result = await client.PostAsJsonAsync("/users", new
@@ -144,7 +144,7 @@ public class RegisterValidatorTests : IClassFixture<TestingWebAppFactory<Program
         const string email = "test@test.com";
 
         var userRequest = new RegisterUser.Request(email, "aaaAAAaaa", DateTime.Now.ToUniversalTime());
-        await CreateUserMock.CreateUser(userRequest, _scope, _cancellationToken);
+        await CreateUserHelper.CreateUser(userRequest, _scope, _cancellationToken);
 
         var result = await _validator.TestValidateAsync(new
                 RegisterUser.Request(email, "password", new DateTime(2000, 01, 31).ToUniversalTime()),

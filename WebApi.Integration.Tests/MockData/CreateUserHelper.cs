@@ -1,11 +1,12 @@
 using Microsoft.Extensions.DependencyInjection;
+using WebApi.Features.Auth.Services;
 using WebApi.Features.Users.Domain;
 using WebApi.Features.Users.Requests;
 using WebApi.Features.Users.Services;
 
 namespace WebApi.Integration.Tests.Features.Users.MockData;
 
-public static class CreateUserMock
+public static class CreateUserHelper
 {
     public static User CreateUser(string email, RoleType role)
     {
@@ -35,5 +36,12 @@ public static class CreateUserMock
             role);
 
         return createdUser;
+    }
+
+    public static async Task FillAuthToken(HttpClient client, AsyncServiceScope scope, User createdUser, CancellationToken cancellationToken)
+    {
+        var tokenService = scope.ServiceProvider.GetRequiredService<TokenService>();
+        var tokens = await tokenService.GenerateTokensAsync(createdUser, "", cancellationToken);
+        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {tokens.accessToken}");
     }
 }

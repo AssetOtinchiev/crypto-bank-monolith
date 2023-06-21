@@ -44,7 +44,7 @@ public class GetNewTokensPairTests : IClassFixture<TestingWebAppFactory<Program>
         var password = "qwerty123456A!";
         var email = "test@test.com";
         var userRequest = new RegisterUser.Request(email, password, DateTime.Now.ToUniversalTime());
-        var createdUser = await CreateUserMock.CreateUser(userRequest, _scope, _cancellationToken);
+        var createdUser = await CreateUserHelper.CreateUser(userRequest, _scope, _cancellationToken);
 
         var response = await client.PostAsJsonAsync("/auth", new
         {
@@ -91,7 +91,7 @@ public class GetNewTokensPairTests : IClassFixture<TestingWebAppFactory<Program>
         var password = "qwerty123456A!";
         var email = "test@test.com";
         var userRequest = new RegisterUser.Request(email, password, DateTime.Now.ToUniversalTime());
-        var createdUser = await CreateUserMock.CreateUser(userRequest, _scope, _cancellationToken);
+        var createdUser = await CreateUserHelper.CreateUser(userRequest, _scope, _cancellationToken);
 
         var oldToken = "test";
         createdUser.RefreshTokens.AddRange(new List<RefreshToken>()

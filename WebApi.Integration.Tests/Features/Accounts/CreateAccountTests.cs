@@ -37,11 +37,9 @@ public class CreateAccountTests : IClassFixture<TestingWebAppFactory<Program>>, 
         var client = _factory.CreateClient();
 
         var userRequest = new RegisterUser.Request("test@gmail.com", "aaaAAAaa", DateTime.Now.ToUniversalTime());
-        var createdUser = await CreateUserMock.CreateUser(userRequest, _scope, _cancellationToken);
+        var createdUser = await CreateUserHelper.CreateUser(userRequest, _scope, _cancellationToken);
 
-        var tokenService = _scope.ServiceProvider.GetRequiredService<TokenService>();
-        var tokens = await tokenService.GenerateTokensAsync(createdUser, "test", _cancellationToken);
-        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {tokens.accessToken}");
+        await CreateUserHelper.FillAuthToken(client, _scope, createdUser, _cancellationToken);
         var amount = 100;
         var currency = "btc";
 
@@ -69,7 +67,7 @@ public class CreateAccountTests : IClassFixture<TestingWebAppFactory<Program>>, 
         var client = _factory.CreateClient();
 
         var userRequest = new RegisterUser.Request("test@gmail.com", "aaaAAAaa", DateTime.Now.ToUniversalTime());
-        var createdUser = await CreateUserMock.CreateUser(userRequest, _scope, _cancellationToken);
+        var createdUser = await CreateUserHelper.CreateUser(userRequest, _scope, _cancellationToken);
 
         var accounts = new List<Account>();
         for (int i = 0; i < _accountsOptions.MaxAvailableAccounts; i++)
@@ -86,9 +84,8 @@ public class CreateAccountTests : IClassFixture<TestingWebAppFactory<Program>>, 
         _db.Accounts.AddRange(accounts);
         await _db.SaveChangesAsync(_cancellationToken);
 
-        var tokenService = _scope.ServiceProvider.GetRequiredService<TokenService>();
-        var tokens = await tokenService.GenerateTokensAsync(createdUser, "test", _cancellationToken);
-        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {tokens.accessToken}");
+        await CreateUserHelper.FillAuthToken(client, _scope, createdUser, _cancellationToken);
+
         var amount = 100;
         var currency = "btc";
 
@@ -169,7 +166,7 @@ public class CreateAccountValidatorTests : IClassFixture<TestingWebAppFactory<Pr
     public async Task Should_require_currency(string currency)
     {
         var userRequest = new RegisterUser.Request("test@gmail.com", "aaaAAAaa", DateTime.Now.ToUniversalTime());
-        var createdUser = await CreateUserMock.CreateUser(userRequest, _scope, _cancellationToken);
+        var createdUser = await CreateUserHelper.CreateUser(userRequest, _scope, _cancellationToken);
 
         var result = await _validator.TestValidateAsync(new CreateAccount.Request(createdUser.Id, currency, 1),
             cancellationToken: _cancellationToken);
@@ -183,7 +180,7 @@ public class CreateAccountValidatorTests : IClassFixture<TestingWebAppFactory<Pr
     public async Task Should_validate_currency_length(string currency)
     {
         var userRequest = new RegisterUser.Request("test@gmail.com", "aaaAAAaa", DateTime.Now.ToUniversalTime());
-        var createdUser = await CreateUserMock.CreateUser(userRequest, _scope, _cancellationToken);
+        var createdUser = await CreateUserHelper.CreateUser(userRequest, _scope, _cancellationToken);
 
         var result = await _validator.TestValidateAsync(new CreateAccount.Request(createdUser.Id, currency, 1),
             cancellationToken: _cancellationToken);
@@ -197,7 +194,7 @@ public class CreateAccountValidatorTests : IClassFixture<TestingWebAppFactory<Pr
     public async Task Should_validate_amount(decimal amount)
     {
         var userRequest = new RegisterUser.Request("test@gmail.com", "aaaAAAaa", DateTime.Now.ToUniversalTime());
-        var createdUser = await CreateUserMock.CreateUser(userRequest, _scope, _cancellationToken);
+        var createdUser = await CreateUserHelper.CreateUser(userRequest, _scope, _cancellationToken);
 
         var result = await _validator.TestValidateAsync(new CreateAccount.Request(createdUser.Id, "btc", amount),
             cancellationToken: _cancellationToken);

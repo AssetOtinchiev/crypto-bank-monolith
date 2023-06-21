@@ -34,14 +34,12 @@ public class GetAccountOpenedByPeriodTests : IClassFixture<TestingWebAppFactory<
         var client = _factory.CreateClient();
 
         var userRequest = new RegisterUser.Request("test@gmail.com", "aaaAAAaa", DateTime.Now.ToUniversalTime());
-        var createdUser = await CreateUserMock.CreateUser(userRequest, _scope, _cancellationToken, RoleType.Analyst);
+        var createdUser = await CreateUserHelper.CreateUser(userRequest, _scope, _cancellationToken, RoleType.Analyst);
         
         createdUser.Accounts.AddRange(accounts);
         await _db.SaveChangesAsync(_cancellationToken);
         
-        var tokenService = _scope.ServiceProvider.GetRequiredService<TokenService>();
-        var tokens = await tokenService.GenerateTokensAsync(createdUser, "test", _cancellationToken);
-        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {tokens.accessToken}");
+        await CreateUserHelper.FillAuthToken(client, _scope, createdUser, _cancellationToken);
 
         var startDate = DateTimeOffset.Now.AddDays(-2).ToUniversalTime();
         var endDate = DateTimeOffset.Now.ToUniversalTime();
@@ -77,12 +75,10 @@ public class GetAccountOpenedByPeriodTests : IClassFixture<TestingWebAppFactory<
         var client = _factory.CreateClient();
 
         var userRequest = new RegisterUser.Request("test@gmail.com", "aaaAAAaa", DateTime.Now.ToUniversalTime());
-        var createdUser = await CreateUserMock.CreateUser(userRequest, _scope, _cancellationToken);
+        var createdUser = await CreateUserHelper.CreateUser(userRequest, _scope, _cancellationToken);
 
         await _db.SaveChangesAsync();
-        var tokenService = _scope.ServiceProvider.GetRequiredService<TokenService>();
-        var tokens = await tokenService.GenerateTokensAsync(createdUser, "test", _cancellationToken);
-        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {tokens.accessToken}");
+        await CreateUserHelper.FillAuthToken(client, _scope, createdUser, _cancellationToken);
 
         var query = new Dictionary<string, string>
         {

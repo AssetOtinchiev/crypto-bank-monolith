@@ -32,7 +32,7 @@ public class AuthenticateTests : IClassFixture<TestingWebAppFactory<Program>>, I
         var password = "qwerty123456A!";
         var email = "test@test.com";
         var userRequest = new RegisterUser.Request(email, password, DateTime.Now.ToUniversalTime());
-        await CreateUserMock.CreateUser(userRequest, _scope, _cancellationToken);
+        await CreateUserHelper.CreateUser(userRequest, _scope, _cancellationToken);
 
         // Act
         var response = await client.PostAsJsonAsync("/auth", new
@@ -56,7 +56,7 @@ public class AuthenticateTests : IClassFixture<TestingWebAppFactory<Program>>, I
         // Arrange
         var client = _factory.CreateClient();
         var userRequest = new RegisterUser.Request("test@gmail.com", "qwerty123456A!", DateTime.Now.ToUniversalTime());
-        await CreateUserMock.CreateUser(userRequest, _scope, _cancellationToken);
+        await CreateUserHelper.CreateUser(userRequest, _scope, _cancellationToken);
 
         // Act
         var response = await client.PostAsJsonAsync("/auth", new
