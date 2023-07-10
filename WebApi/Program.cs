@@ -8,6 +8,7 @@ using WebApi.Database;
 using WebApi.Errors.Extensions;
 using WebApi.Features.Accounts.Registration;
 using WebApi.Features.Auth.Registration;
+using WebApi.Features.Deposits.Registration;
 using WebApi.Features.Users.Registration;
 using WebApi.Observability;
 using WebApi.Pipeline;
@@ -20,7 +21,13 @@ builder.Services.AddProblemDetails();
 
 // Add services to the container.
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")),
+    contextLifetime: ServiceLifetime.Scoped,
+    optionsLifetime: ServiceLifetime.Singleton);
+
+builder.Services.AddDbContextFactory<AppDbContext>(
+    (provider, options) =>
+        options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddMediatR(cfg => cfg
     .RegisterServicesFromAssembly(Assembly.GetExecutingAssembly())
@@ -42,6 +49,7 @@ builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwa
 builder.AddUsers();
 builder.AddAuth();
 builder.AddAccounts();
+builder.AddDeposits();
 
 var app = builder.Build();
 

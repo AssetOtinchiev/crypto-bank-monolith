@@ -12,7 +12,7 @@ using WebApi.Database;
 namespace WebApi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20230710053604_DepositAddressXpub")]
+    [Migration("20230710152720_DepositAddressXpub")]
     partial class DepositAddressXpub
     {
         /// <inheritdoc />
