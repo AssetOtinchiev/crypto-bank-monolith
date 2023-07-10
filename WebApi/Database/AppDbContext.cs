@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using WebApi.Features.Accounts.Domain;
 using WebApi.Features.Auth.Domain;
+using WebApi.Features.Deposits.Domain;
 using WebApi.Features.Users.Domain;
 
 namespace WebApi.Database;
@@ -24,8 +25,11 @@ public class AppDbContext : DbContext
     public virtual DbSet<Account> Accounts { get; set; } 
     
     public virtual DbSet<Role> Roles { get; set; }
-
-
+    
+    public virtual DbSet<Xpub> Xpubs { get; set; }
+    
+    public virtual DbSet<DepositAddress> DepositAddresses{ get; set; }
+    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -34,6 +38,54 @@ public class AppDbContext : DbContext
         MapAccounts(modelBuilder);
         MapUsers(modelBuilder);
         MapRoles(modelBuilder);
+        MapXpubs(modelBuilder);
+        MapDepositAddresses(modelBuilder);
+    }
+
+    private void MapDepositAddresses(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<DepositAddress>(depositAddress =>
+        {
+            depositAddress.HasKey(x=> x.Id);
+            
+            depositAddress.Property(e => e.CurrencyCode)
+                .IsRequired();
+            
+            depositAddress.Property(e => e.UserId)
+                .IsRequired();
+            
+            depositAddress.Property(e => e.CryptoAddress)
+                .IsRequired();
+            
+            depositAddress.Property(e => e.DerivationIndex)
+                .IsRequired();
+            
+            depositAddress.Property(e => e.XpubId)
+                .IsRequired();
+            
+            depositAddress.HasOne(user => user.User)
+                .WithMany(p => p.DepositAddresses)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientCascade);
+            
+            depositAddress.HasOne(address => address.Xpub)
+                .WithMany()
+                .HasForeignKey(address => address.XpubId);
+        });
+    }
+
+    private void MapXpubs(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Xpub>(role =>
+        {
+            role.HasKey(x=> x.Id);
+            
+            role.Property(e => e.CurrencyCode)
+                .IsRequired();
+            
+            role.Property(e => e.Value)
+                .IsRequired();
+        });
     }
 
     private void MapRoles(ModelBuilder modelBuilder)
