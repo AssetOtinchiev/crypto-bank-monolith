@@ -15,9 +15,9 @@ public class DepositController : Controller
         _mediator = mediator;
     }
     
-    [HttpGet("roles")]
+    [HttpGet("address")]
     [Authorize]
-    public async Task<object> GetUserRoles([FromQuery] GetDepositAddress.Request request,
+    public async Task<object> GetDepositAddress([FromQuery] GetDepositAddress.Request request,
         CancellationToken cancellationToken)
     {
         var response = await _mediator.Send(request, cancellationToken);
