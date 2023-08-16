@@ -1,3 +1,4 @@
+using System.Data.Common;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using NBitcoin;
@@ -23,23 +24,43 @@ public class XPubInitializer : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
-        var xpubExists =
-            await context.Xpubs.AnyAsync(x => x.CurrencyCode == CurrencyCode, cancellationToken: cancellationToken);
-
-        if (xpubExists)
-            return;
-
-        var masterPubKey = _depositOptions.XpubValue;
-
-        var xpubEntity = new Xpub
+        var inProgress = true;
+        while (inProgress)
         {
-            Value = masterPubKey,
-            CurrencyCode = CurrencyCode
-        };
+            try
+            {
+                await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+                var xpubExists =
+                    await context.Xpubs.AnyAsync(x => x.CurrencyCode == CurrencyCode,
+                        cancellationToken: cancellationToken);
 
-        await context.Xpubs.AddAsync(xpubEntity, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
+                if (xpubExists)
+                    return;
+
+                var masterPubKey = _depositOptions.XpubValue;
+
+                var xpubEntity = new Xpub
+                {
+                    Value = masterPubKey,
+                    CurrencyCode = CurrencyCode
+                };
+
+                await context.Xpubs.AddAsync(xpubEntity, cancellationToken);
+
+                if (await context.SaveChangesAsync(cancellationToken) > 0)
+                {
+                    inProgress = false;
+                }
+            }
+            catch (DbException e)
+            {
+                _logger.LogError(e, "Cannot save Xpub to database");
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Cannot proceed xpub");
+            }
+        }
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
