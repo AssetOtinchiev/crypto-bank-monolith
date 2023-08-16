@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using NBitcoin;
 using WebApi.Database;
 using WebApi.Features.Deposits.Domain;
+using WebApi.Features.Deposits.Options;
 
 namespace WebApi.Jobs;
 
@@ -9,12 +11,14 @@ public class XPubInitializer : IHostedService
 {
     private readonly ILogger<XPubInitializer> _logger;
     private readonly IDbContextFactory<AppDbContext> _contextFactory;
+    private readonly DepositOptions _depositOptions;
     private const string CurrencyCode = "BTC";
 
-    public XPubInitializer(ILogger<XPubInitializer> logger, IDbContextFactory<AppDbContext> contextFactory)
+    public XPubInitializer(ILogger<XPubInitializer> logger, IDbContextFactory<AppDbContext> contextFactory, IOptions<DepositOptions> depositOptions)
     {
         _logger = logger;
         _contextFactory = contextFactory;
+        _depositOptions = depositOptions.Value;
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -26,7 +30,7 @@ public class XPubInitializer : IHostedService
         if (xpubExists)
             return;
 
-        var masterPubKey = GeneratePubKey();
+        var masterPubKey = _depositOptions.XpubValue;
 
         var xpubEntity = new Xpub
         {
@@ -41,21 +45,5 @@ public class XPubInitializer : IHostedService
     public Task StopAsync(CancellationToken cancellationToken)
     {
         return Task.CompletedTask;
-    }
-
-    /// <summary>
-    /// https://programmingblockchain.gitbook.io/programmingblockchain/key_generation/bip_32
-    /// </summary>
-    /// <returns></returns>
-    private string GeneratePubKey()
-    {
-        var masterPrvKey = new ExtKey();
-        var network = Network.TestNet;
-        _logger.LogInformation($"Master private key: [{masterPrvKey.ToString(network)}]");
-
-        var masterPubKey = masterPrvKey.Neuter();
-        var masterPubKeyAsString = masterPubKey.ToString(network);
-        _logger.LogInformation($"Master public key: [{masterPubKeyAsString}]");
-        return masterPubKeyAsString;
     }
 }
