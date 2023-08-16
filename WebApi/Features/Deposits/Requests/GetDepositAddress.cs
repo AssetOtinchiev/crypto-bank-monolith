@@ -23,6 +23,7 @@ public class GetDepositAddress
             RuleFor(x => x.UserId)
                 .Cascade(CascadeMode.Stop)
                 .NotEmpty()
+                .WithErrorCode(NotExist)
                 .MustAsync(async (x, token) =>
                 {
                     var userExists = await dbContext.Users.AnyAsync(user => user.Id == x, token);
