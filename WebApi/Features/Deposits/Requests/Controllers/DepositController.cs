@@ -15,7 +15,7 @@ public class DepositController : Controller
         _mediator = mediator;
     }
     
-    [HttpGet("address")]
+    [HttpPost("address")]
     [Authorize]
     public async Task<object> GetDepositAddress([FromQuery] GetDepositAddress.Request request,
         CancellationToken cancellationToken)
