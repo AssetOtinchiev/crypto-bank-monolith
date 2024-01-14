@@ -1,100 +1,89 @@
-terraform {
-  required_providers {
-    azurerm = {
-      source = "hashicorp/azurerm"
-      version = "3.85.0"
-    }
-  }
+resource "hcloud_network" "network" {
+  name     = "main_network"
+  ip_range = "10.0.0.0/16"
 }
 
-provider "azurerm" {
-  subscription_id = ""
-  client_id = ""
-  client_secret = ""
-  tenant_id = ""
-  features {}
+resource "hcloud_network_subnet" "subnet" {
+  type         = "cloud"
+  network_id   = hcloud_network.network.id
+  network_zone = "eu-central"
+  ip_range     = "10.0.1.0/24"
 }
 
-locals {
-  resource_group="app-grp"
-  location="North Europe"
+module "api_server_1" {
+  source = "./modules/api-server"
+
+  name = "api1"
+  location = "hel1"
+  server_type = "cx21"
+  image = "ubuntu-22.04"
+  network_id = hcloud_network.network.id
 }
 
-resource "azurerm_resource_group" "app_grp" {
-  name = local.resource_group
-  location = local.location
+module "api_server_2" {
+  source = "./modules/api-server"
+
+  name = "api2"
+  location = "hel1"
+  server_type = "cx21"
+  image = "ubuntu-22.04"
+  network_id = hcloud_network.network.id
 }
 
-resource "azurerm_virtual_network" "app_network" {
-  name                = "app-network"
-  location            = local.location
-  resource_group_name = azurerm_resource_group.app_grp.name
-  address_space       = ["10.0.0.0/16"]
+module "worker_server_1" {
+  source = "./modules/worker-server"
+  name = "worker1"
+  location = "hel1"
+  server_type = "cx21"
+  image = "ubuntu-22.04"
+  network_id = hcloud_network.network.id
+  volume_size = 40
 }
 
-resource "azurerm_subnet" "SubnetA" {
-  name                 = "SubnetA"
-  resource_group_name  = local.resource_group
-  virtual_network_name = azurerm_virtual_network.app_network.name
-  address_prefixes     = ["10.0.1.0/24"]
-  depends_on = [
-    azurerm_virtual_network.app_network
-  ]
+module "worker_server_2" {
+  source = "./modules/worker-server"
+  name = "worker2"
+  location = "hel1"
+  server_type = "cx21"
+  image = "ubuntu-22.04"
+  network_id = hcloud_network.network.id
+  volume_size = 40
 }
 
-resource "azurerm_network_interface" "app_interface" {
-  name                = "app-interface"
-  location            = local.location
-  resource_group_name = local.resource_group
-
-  ip_configuration {
-    name                          = "internal"
-    subnet_id                     = azurerm_subnet.SubnetA.id
-    private_ip_address_allocation = "Dynamic"
-    public_ip_address_id = azurerm_public_ip.app_public_ip.id
-  }
-
-  depends_on = [
-    azurerm_virtual_network.app_network,
-    azurerm_public_ip.app_public_ip
-  ]
+module "worker_server_3" {
+  source = "./modules/worker-server"
+  name = "worker3"
+  location = "hel1"
+  server_type = "cx21"
+  image = "ubuntu-22.04"
+  network_id = hcloud_network.network.id
+  volume_size = 40
 }
 
-resource "azurerm_linux_virtual_machine" "linux_vm" {
-  name                = "linuxvm"
-  resource_group_name = local.resource_group
-  location            = local.location
-  size                = "Standard_D2s_v3"
-  admin_username      = "linuxusr"
-  admin_password      = "Azure@123"
-  disable_password_authentication = false
-  network_interface_ids = [
-    azurerm_network_interface.app_interface.id,
-  ]
-
-  os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
-  }
-
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "18.04-LTS"
-    version   = "latest"
-  }
-
-  depends_on = [
-    azurerm_network_interface.app_interface
-  ]
+module "worker_server_4" {
+  source = "./modules/worker-server"
+  name = "worker4"
+  location = "hel1"
+  server_type = "cx21"
+  image = "ubuntu-22.04"
+  network_id = hcloud_network.network.id
+  volume_size = 40
 }
 
-resource "azurerm_public_ip" "app_public_ip" {
-  name                = "app-public-ip"
-  resource_group_name = local.resource_group
-  location            = local.location
-  allocation_method   = "Static"
-  depends_on = [
-    azurerm_resource_group.app_grp
-  ]
+resource "hcloud_load_balancer" "load_balancer" {
+  name               = "load_balancer"
+  load_balancer_type = "lb11"
+  location           = "hel1"
+}
+
+resource "hcloud_load_balancer_target" "load_balancer_target_1" {
+  type             = "server"
+  load_balancer_id = hcloud_load_balancer.load_balancer.id
+  server_id        = module.api_server_1.id
+}
+
+resource "hcloud_load_balancer_target" "load_balancer_target_2" {
+  type             = "server"
+  load_balancer_id = hcloud_load_balancer.load_balancer.id
+  server_id        = module.api_server_2.id
 }
