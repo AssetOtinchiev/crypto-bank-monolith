@@ -1,3 +1,7 @@
+data "hcloud_ssh_key" "ssh_key" {
+  fingerprint = var.ssh_key_fingerprint
+}
+
 resource "hcloud_network" "network" {
   name     = "main_network"
   ip_range = "10.0.0.0/16"
@@ -10,80 +14,45 @@ resource "hcloud_network_subnet" "subnet" {
   ip_range     = "10.0.1.0/24"
 }
 
-module "api_server_1" {
-  source = "./modules/api-server"
-
-  name = "api1"
-  location = "hel1"
-  server_type = "cx21"
-  image = "ubuntu-22.04"
-  network_id = hcloud_network.network.id
+locals {
+  frontend_ip = "10.0.1.1"
+  backend_ip  = "10.0.1.2"
+  database_ip = "10.0.1.3"
 }
 
-module "api_server_2" {
-  source = "./modules/api-server"
-
-  name = "api2"
-  location = "hel1"
-  server_type = "cx21"
-  image = "ubuntu-22.04"
-  network_id = hcloud_network.network.id
+module "general_firewall" {
+  source = "./modules/general-firewall"
 }
 
-module "worker_server_1" {
-  source = "./modules/worker-server"
-  name = "worker1"
-  location = "hel1"
-  server_type = "cx21"
-  image = "ubuntu-22.04"
-  network_id = hcloud_network.network.id
-  volume_size = 40
+module "frontend_server" {
+  source = "./modules/frontend-server"
+
+  name             = "frontend"
+  network_id       = hcloud_network.network.id
+  private_ip       = local.frontend_ip
+  general_firewall_id = module.general_firewall.id
+  ssh_keys         = [data.hcloud_ssh_key.ssh_key.name]
 }
 
-module "worker_server_2" {
-  source = "./modules/worker-server"
-  name = "worker2"
-  location = "hel1"
-  server_type = "cx21"
-  image = "ubuntu-22.04"
-  network_id = hcloud_network.network.id
-  volume_size = 40
+module "backend_server" {
+  source = "./modules/backend-server"
+
+  name             = "backend"
+  network_id       = hcloud_network.network.id
+  private_ip       = local.backend_ip
+  general_firewall_id = module.general_firewall.id
+  frontend_ip      = local.frontend_ip
+  database_ip      = local.database_ip
+  ssh_keys         = [data.hcloud_ssh_key.ssh_key.name]
 }
 
-module "worker_server_3" {
-  source = "./modules/worker-server"
-  name = "worker3"
-  location = "hel1"
-  server_type = "cx21"
-  image = "ubuntu-22.04"
-  network_id = hcloud_network.network.id
-  volume_size = 40
-}
+module "database_server" {
+  source = "./modules/database-server"
 
-module "worker_server_4" {
-  source = "./modules/worker-server"
-  name = "worker4"
-  location = "hel1"
-  server_type = "cx21"
-  image = "ubuntu-22.04"
-  network_id = hcloud_network.network.id
-  volume_size = 40
-}
-
-resource "hcloud_load_balancer" "load_balancer" {
-  name               = "load_balancer"
-  load_balancer_type = "lb11"
-  location           = "hel1"
-}
-
-resource "hcloud_load_balancer_target" "load_balancer_target_1" {
-  type             = "server"
-  load_balancer_id = hcloud_load_balancer.load_balancer.id
-  server_id        = module.api_server_1.id
-}
-
-resource "hcloud_load_balancer_target" "load_balancer_target_2" {
-  type             = "server"
-  load_balancer_id = hcloud_load_balancer.load_balancer.id
-  server_id        = module.api_server_2.id
+  name             = "database"
+  network_id       = hcloud_network.network.id
+  private_ip       = local.database_ip
+  general_firewall_id = module.general_firewall.id
+  backend_ip       = local.backend_ip
+  ssh_keys         = [data.hcloud_ssh_key.ssh_key.name]
 }
