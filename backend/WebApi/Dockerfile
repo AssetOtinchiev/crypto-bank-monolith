@@ -1,27 +1,21 @@
-﻿# ALL LAYERS FROM IMAGE
-FROM mcr.microsoft.com/dotnet/sdk:7.0 as build
-
-WORKDIR /src
-
-# NEW LAYER
-COPY ./WebApi/WebApi.csproj ./WebApi/
-
-# NEW LAYER
-RUN dotnet restore --no-cache --no-dependencies WebApi/WebApi.csproj
-
-# NEW LAYER
-COPY . .
-
-RUN dotnet publish -c Release --no-restore WebApi/WebApi.csproj
-
-# ALL LAYERS FROM IMAGE
-FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS runtime
+﻿FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
 
 WORKDIR /app
+EXPOSE 80
 
-# NEW LAYER
-COPY --from=build /src/WebApi/bin/Release/net7.0/publish /app
+FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 
-ENV ASPNETCORE_URLS http://*:80
+WORKDIR /src
+COPY ./WebApi/WebApi.csproj ./WebApi/
+RUN dotnet restore ./WebApi/WebApi.csproj
+
+COPY . .
+RUN dotnet build ./WebApi/WebApi.csproj -c Release -o /app/build
+
+RUN dotnet publish ./WebApi/DrimCity.WebApi.csproj -c Release -o /app/publish
+
+FROM base AS final
+
+COPY --from=build /app/publish .
 
 ENTRYPOINT ["dotnet", "WebApi.dll"]
