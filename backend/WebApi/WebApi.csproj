@@ -22,16 +22,17 @@
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
         <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.30.1" />
     </ItemGroup>
+    
+
+    <ItemGroup>
+      <Folder Include="Controllers" />
+    </ItemGroup>
+    
 
     <ItemGroup>
       <Content Include="..\.dockerignore">
         <Link>.dockerignore</Link>
       </Content>
-    </ItemGroup>
-    
-
-    <ItemGroup>
-      <Folder Include="Controllers" />
     </ItemGroup>
     
 </Project>
