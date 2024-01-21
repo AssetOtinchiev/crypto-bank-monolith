@@ -1,0 +1,39 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{928A59E2-216F-4418-8D69-3C8760354410}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{4A523B2B-D36C-42FA-8592-F5A38A0886F3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BuildingBlocks", "BuildingBlocks", "{8D308AC5-C4DD-4D17-A5E8-48C44D1F79CD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApi", "WebApi\WebApi.csproj", "{4CC8B59E-EEEC-4C81-A4BD-810EA6F3712A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApi.Integration.Tests", "WebApi.Integration.Tests\WebApi.Integration.Tests.csproj", "{318BCD92-1B16-40C7-A969-F0881644CF15}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApi.Unit.Tests", "WebApi.Unit.Tests\WebApi.Unit.Tests.csproj", "{2A3BA2B2-6D85-4437-8696-FCC5ABC5D01F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{4CC8B59E-EEEC-4C81-A4BD-810EA6F3712A} = {928A59E2-216F-4418-8D69-3C8760354410}
+		{318BCD92-1B16-40C7-A969-F0881644CF15} = {4A523B2B-D36C-42FA-8592-F5A38A0886F3}
+		{2A3BA2B2-6D85-4437-8696-FCC5ABC5D01F} = {4A523B2B-D36C-42FA-8592-F5A38A0886F3}
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4CC8B59E-EEEC-4C81-A4BD-810EA6F3712A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4CC8B59E-EEEC-4C81-A4BD-810EA6F3712A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4CC8B59E-EEEC-4C81-A4BD-810EA6F3712A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4CC8B59E-EEEC-4C81-A4BD-810EA6F3712A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{318BCD92-1B16-40C7-A969-F0881644CF15}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{318BCD92-1B16-40C7-A969-F0881644CF15}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{318BCD92-1B16-40C7-A969-F0881644CF15}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{318BCD92-1B16-40C7-A969-F0881644CF15}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A3BA2B2-6D85-4437-8696-FCC5ABC5D01F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A3BA2B2-6D85-4437-8696-FCC5ABC5D01F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A3BA2B2-6D85-4437-8696-FCC5ABC5D01F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A3BA2B2-6D85-4437-8696-FCC5ABC5D01F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
