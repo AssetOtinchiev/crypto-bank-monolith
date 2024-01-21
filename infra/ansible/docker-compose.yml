@@ -1,0 +1,12 @@
+version: "3.8"
+
+name: "ansible-app"
+
+services:
+  ansible-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./src/:/src/
+      - /Users/astqwerty/.ssh:/root/.ssh
