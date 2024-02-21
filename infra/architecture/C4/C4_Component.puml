@@ -1,0 +1,96 @@
+@startuml C4_Component_Diagram
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+Person(personAlias, "User", "")
+
+System_Boundary(c1, "Flow Information") {
+    Container(conatinerApiAlias, "Api Gateway","", "Handle all requests, give permission to the request")
+    Container(cointainerAuthAlias, "Auth Service","", "Register, verify, update user")
+        ContainerDb(cointainerAuthDbAlias, "Auth Db","", "Auth storage")
+        Boundary(c4AuthBoundary, "Components",) {
+            Component(cointainerAuthRegisterComponent, "AuthRegister component", "", "Register user")
+            Component(cointainerAuthLoginComponent, "AuthLogin component", "", "Auth user")
+            Component(cointainerAuthProfileComponent, "Profile component", "", "Profile")
+            Component(cointainerAuthPasswordUpdateComponent, "PasswordUpdate component", "", "Update password")
+        }
+        
+    Container(conatinerBackofficeAlias, "Backoffice","", "User role administration | may be out of scope")
+        Boundary(c4BackofficeBoundary, "Components",) {
+            Component(cointainerBackofficeUpdateUserRoleComponent, "UpdateUserRole component", "", "UpdateUserRole")
+        }
+    Container(conatinerAccountAlias, "Account Service","", "fiat money flow, open an account, withdrawal, payment history")
+        ContainerDb(cointainerAccountDbAlias, "Account Db","", "Account storage")
+        Boundary(c4AccountBoundary, "Components",) {
+            Component(cointainerAccountOpenAccountComponent, "OpenAccount component", "", "Create a new account")
+            Component(cointainerAccountListComponent, "List component", "", "Get accounts list")
+            Component(cointainerAccountCreateVirtualCardComponent, "CreateVirtualCard component", "", "create virtual card with openning card account")
+            Component(cointainerAccountFundsTransferComponent, "FundsTransfer component", "", "Transfer funds from card to account, from account to card, between cards")
+            Component(cointainerAccountQrPayComponent, "QrPay component", "", "Pay with qr")
+            Component(cointainerAccountTransactionHistoryComponent, "TransactionHistory component", "", "TransactionHistory")
+        }
+    Container(conatinerCryptoAlias, "Crypto Service","", "Manipultaion with all crypto services")
+        ContainerDb(conatinerCryptoDbAlias, "Crypto Db","", "Crypto storage")
+        Boundary(c4CryptoBoundary, "Components",) {
+            Component(cointainerCryptoGenerateAddressComponent, "GenerateAddress component", "", "Generate address")
+            Component(cointainerCryptoConfirmationByUserComponent, "ConfirmationByUser component", "", "Confirmation by user")
+            Component(cointainerCryptoCheckConfirmationComponent, "CheckConfirmation component", "", "Check confirmation")
+            Component(cointainerCryptoWithdrawalComponent, "Withdrawal component", "", "Withdrawal")
+        }
+    Container(conatinerCryptoBTCAlias, "Crypto BTC Service","", "Manipultaion with BTC, generate deposit, blockchain BTC confirmation")
+    Container(conatinerCryptoBTCWebSocketNotificationAlias, "Crypto BTC Web Socket Notification","", "Notification about balance changes via web socket like SignalR")
+    Container(conatinerCryptoBTCEmailNotificationAlias, "Crypto BTC Email Notification","", "Notification about balance changes via email")
+    Container(conatinerCryptoETHAlias, "Crypto ETH Service","", "Manipultaion with ETH, generate deposit, blockchain ETH confirmation")
+    Container(conatinerCryptoETHWebSocketNotificationAlias, "Crypto ETH Web Socket Notification","", "Notification about balance changes via web socket like SignalR")
+    Container(conatinerCryptoETHEmailNotificationAlias, "Crypto ETH Email Notification","", "Notification about balance changes via email")
+
+
+    Container(conatinerUtilityProviderAlias, "UtilityProvider Service","", "Registration recepit account, get history, payment by user")
+        ContainerDb(conatinerUtilityProviderDbAlias, "UtilityProvider Db","", "UtilityProvider storage")
+        Boundary(c4UtilityProviderBoundary, "Components",) {
+            Component(cointainerUtilityProviderRegisterByPhoneComponent, "RegisterByPhone", "", "Registration of a utility account by its number. Account information is obtained from UtilityProvider")
+            Component(cointainerUtilityProviderPeriodicallyRetrievingUnpaidReceiptsComponent, "PeriodicallyRetrievingUnpaidReceipts", "", "Periodically retrieving unpaid receipts from UtilityProvider")
+            Component(cointainerUtilityProviderPaymentReceiptComponent, "PaymentReceipt", "", "Payment by the user. After payment, the receipt is sent to UtilityProvider")
+            Component(cointainerUtilityProviderGetReceiptHistoryListComponent, "GetReceiptHistoryList", "", "Obtaining the history of paid receipts by the user")
+        }
+    Container(conatinerUtilityProviderWebSocketNotificationAlias, "UtilityProvider Web Socket Notification","", "Notification about a new receipt via web socket")
+    Container(conatinerUtilityProviderEmailNotificationAlias, "UtilityProvider Email Notification","", "Notification about a new receipt via email")
+
+    Container(conatinerAccountReportAlias, "Account report", "Generating a report on open accounts upon request. On request")
+    Container(conatinerCryptoReportAlias, "Crypto report", "Generating a report on the total amount of cryptocurrency deposited and withdrawn. On request")
+
+}
+
+
+Rel(personAlias, conatinerApiAlias, "", "")
+Rel(conatinerApiAlias, cointainerAuthAlias, "", "")
+    Rel(cointainerAuthAlias, cointainerAuthDbAlias, "", "")
+    Rel(cointainerAuthAlias, c4AuthBoundary, "", "")
+Rel(conatinerApiAlias, conatinerBackofficeAlias, "", "")
+    Rel(conatinerBackofficeAlias, cointainerAuthDbAlias, "", "")
+    Rel(conatinerBackofficeAlias, c4BackofficeBoundary, "", "")
+Rel(conatinerApiAlias, conatinerAccountAlias, "", "")
+    Rel(conatinerAccountAlias, cointainerAccountDbAlias, "", "")
+     Rel(conatinerAccountAlias, c4AccountBoundary, "", "")
+Rel(conatinerApiAlias, conatinerCryptoAlias, "", "")
+
+Rel(conatinerCryptoAlias, conatinerCryptoBTCAlias, "", "")
+    Rel(conatinerCryptoAlias, conatinerCryptoDbAlias, "", "")
+    Rel(conatinerCryptoAlias, c4CryptoBoundary, "", "")
+Rel(conatinerCryptoBTCAlias, conatinerCryptoBTCWebSocketNotificationAlias, "", "")
+Rel(conatinerCryptoBTCAlias, conatinerCryptoBTCEmailNotificationAlias, "", "")
+Rel(conatinerCryptoAlias, conatinerCryptoETHAlias, "", "")
+Rel(conatinerCryptoETHAlias, conatinerCryptoETHWebSocketNotificationAlias, "", "")
+Rel(conatinerCryptoETHAlias, conatinerCryptoETHEmailNotificationAlias, "", "")
+
+Rel(conatinerApiAlias, conatinerUtilityProviderAlias, "", "")
+    Rel(conatinerUtilityProviderAlias, conatinerUtilityProviderDbAlias, "", "")
+    Rel(conatinerCryptoAlias, c4UtilityProviderBoundary, "", "")
+Rel(conatinerUtilityProviderAlias, conatinerUtilityProviderWebSocketNotificationAlias, "", "")
+Rel(conatinerUtilityProviderAlias, conatinerUtilityProviderEmailNotificationAlias, "", "")
+
+Rel(conatinerApiAlias, conatinerAccountReportAlias, "", "")
+Rel(conatinerApiAlias, conatinerCryptoReportAlias, "", "")
+
+
+@enduml

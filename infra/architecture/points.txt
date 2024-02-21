@@ -1,0 +1,124 @@
+
+AuthService
+
+Регистрация пользователя
+
+Аутентификация пользователя
+
+Получение профиля пользователя
+
+Обновление профиля пользователя
+
+Смена пароля пользователем
+
+
+
+Backoffice
+Обновление администратором ролей пользователя
+
+AccountService
+
+Открытие пользователем счёта
+
+Получение списка счетов пользователя
+
+Перевод пользователем средств между счетами
+
+Создание виртуальной карты с открытием карточного счёта
+
+Получение списка виртуальных карт пользователя
+
+Перевод средств на карту со счёта
+
+Перевод средств со счёта на карту
+
+Перевод средств между картами
+
+Оплата с помощью QR
+
+Получение пользователем истории переводов и платежей
+
+CryptoBtcService
+
+Получение депозита BTC (с предварительным созданием депозитного адреса)
+
+Проверка подтверждений депозита BTC и его начисление на счёт
+
+Создание вывода BTC
+
+Подтверждение вывода BTC пользователем
+
+Проверка подтверждений вывода BTC
+
+CryptoNotificationWebsocket
+
+Оповещение пользователя об операциях с BTC посредством SignalR
+
+CryptoNotificationEmail
+
+Оповещение пользователя об операциях с BTC посредством email
+
+CryptoEthService
+
+Получение депозита ETH (с предварительным созданием депозитного адреса)
+
+Проверка подтверждений депозита ETH и его начисление на счёт
+
+Создание вывода ETH
+
+Подтверждение вывода ETH пользователем
+
+Проверка подтверждений вывода ETH
+
+CryptoEthNotificationWebsocket
+
+Оповещение пользователя об операциях с ETH посредством SignalR
+
+CryptoEthNotificationEmail
+
+Оповещение пользователя об операциях с ETH посредством email
+
+UtilityProvider 
+В этом блоке используется внешняя система коммунальных платежей - UtilityProvider
+
+Регистрация счёта коммунальных услуг по его номеру. Информация о счёта получается из UtilityProvider
+
+Периодическое получение из UtilityProvider неоплаченных квитанций
+
+Получение пользователем списка неоплаченных квитанций
+
+Оплата квитанции пользователем. После оплаты квитанция отправляется в UtilityProvider
+
+Получение истории оплаченных квитанций пользователем
+
+UtilityProviderNotificationWebsocket
+
+Оповещение пользователя о новой квитанции посредством SignalR
+
+UtilityProviderNotificationEmail
+
+Оповещение пользователя о новой квитанции посредством email
+
+
+ReportAccountService
+Генерация отчёта об открытых счетах по запросу. По запросу
+
+ReportCryptoService
+Генерация отчёта об общем количестве введённой и выведенной криптовалюты. По запросу
+
+
+AuthService
+Backoffice
+AccountService
+CryptoService
+CryptoBtcService
+CryptoBtcNotificationWebsocket
+CryptoBtcNotificationEmail
+CryptoEthService
+CryptoEthNotificationWebsocket
+CryptoEthNotificationEmail
+UtilityProvider
+UtilityProviderNotificationWebsocket
+UtilityProviderNotificationEmail
+ReportAccountService
+ReportCryptoService
